@@ -469,6 +469,7 @@
     .grid{ padding:20px 18px 60px; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -698,6 +699,30 @@
 
 <script>
 const WHATSAPP_NUMBER = "258857085581";
+
+const SUPABASE_URL = "__SUPABASE_URL__";
+const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
+const { createClient } = window.supabasejs;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+window.storage = {
+  async get(key, isAdmin) {
+    const { data, error } = await supabase
+      .from('app_data')
+      .select('value')
+      .eq('key', key)
+      .eq('is_admin', isAdmin)
+      .maybeSingle();
+    if (error || !data) return null;
+    return { value: data.value };
+  },
+  async set(key, value, isAdmin) {
+    const { error } = await supabase
+      .from('app_data')
+      .upsert({ key, value, is_admin: isAdmin }, { onConflict: 'key' });
+    if (error) console.error('Supabase error:', error);
+  }
+};
 
 let products = [];
 let orders = [];
