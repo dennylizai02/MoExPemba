@@ -775,8 +775,10 @@ async function loadData(){
     if(!pay) await savePayments();
   }catch(e){ payments = ["M-Pesa","e-Mola","BIM"]; }
   render();
-  document.getElementById('publicView').style.display = 'block';
-  document.querySelector('.cart-btn').style.display = '';
+  document.getElementById('publicView').style.display = 'none';
+  document.querySelector('.cart-btn').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'block';
+  document.getElementById('loginUser').focus();
 }
 
 function seedProducts(){
