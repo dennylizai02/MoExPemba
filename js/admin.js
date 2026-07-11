@@ -105,11 +105,11 @@ export function updateHeaderUI(user) {
   const wrap = document.getElementById('userInfo');
   const openAdminBtn = document.getElementById('openAdmin');
   const cartBtn = document.getElementById('openCart');
+  cartBtn.style.display = '';
   if (!user) {
-    wrap.style.display = 'none';
-    wrap.innerHTML = '';
+    wrap.style.display = 'flex';
+    wrap.innerHTML = `<button class="logout-btn" id="loginHeaderBtn" style="background:rgba(251,247,238,0.15);border-color:rgba(251,247,238,0.3);">Entrar</button>`;
     openAdminBtn.style.display = 'none';
-    cartBtn.style.display = 'none';
     return;
   }
   const isAdmin = user.role === 'admin';
@@ -122,7 +122,6 @@ export function updateHeaderUI(user) {
     <button class="logout-btn" id="userLogoutBtn">Sair</button>
   `;
   openAdminBtn.style.display = isAdmin ? '' : 'none';
-  cartBtn.style.display = '';
 }
 
 export function showAuthError(id, msg) {

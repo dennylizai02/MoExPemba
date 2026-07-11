@@ -254,7 +254,7 @@ async function init() {
   if (restoreSession()) {
     navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
   } else {
-    navigateTo('auth');
+    navigateTo('public');
   }
   render();
   setupEventListeners();
@@ -264,6 +264,9 @@ function setupEventListeners() {
   document.getElementById('openCart').onclick = openCartDrawer;
   document.getElementById('closeCart').onclick = closeCart;
   document.getElementById('overlay').onclick = () => { closeCart(); closeAllModals(); };
+  document.getElementById('userInfo').addEventListener('click', (e) => {
+    if (e.target.id === 'loginHeaderBtn') navigateTo('auth');
+  });
 
   document.getElementById('pmClose').onclick = () => document.getElementById('productModal').classList.remove('show');
   document.getElementById('pmAdd').onclick = () => {
