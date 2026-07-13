@@ -357,17 +357,18 @@ function setupEventListeners() {
     showToast("Pedido enviado! Vamos procurar para si.");
   };
 
-  document.querySelectorAll('[data-auth-tab]').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('[data-auth-tab]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const tab = btn.dataset.authTab;
-      document.getElementById('authLoginForm').style.display = tab === 'login' ? '' : 'none';
-      document.getElementById('authRegisterForm').style.display = tab === 'register' ? '' : 'none';
-      document.getElementById('loginError').classList.remove('show');
-      document.getElementById('registerError').classList.remove('show');
-    };
-  });
+  document.getElementById('showRegister').onclick = () => {
+    document.getElementById('authLoginForm').style.display = 'none';
+    document.getElementById('authRegisterForm').style.display = '';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('registerError').classList.remove('show');
+  };
+  document.getElementById('showLogin').onclick = () => {
+    document.getElementById('authRegisterForm').style.display = 'none';
+    document.getElementById('authLoginForm').style.display = '';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('registerError').classList.remove('show');
+  };
 
   document.getElementById('authLoginBtn').onclick = async () => {
     const phone = document.getElementById('authLoginPhone').value.trim();
@@ -415,10 +416,12 @@ function setupEventListeners() {
     render();
   };
 
-  document.getElementById('userLogoutBtn')?.addEventListener('click', () => {
-    logout();
-    navigateTo('auth');
-    render();
+  document.getElementById('userInfo').addEventListener('click', (e) => {
+    if (e.target.id === 'userLogoutBtn') {
+      logout();
+      navigateTo('auth');
+      render();
+    }
   });
 
   document.querySelectorAll('.tab').forEach(t => {
@@ -482,11 +485,6 @@ function setupEventListeners() {
     renderPaymentsList(state.payments, handleRemovePayment);
   };
 
-  document.getElementById('userLogoutBtn')?.addEventListener('click', () => {
-    logout();
-    navigateTo('auth');
-    render();
-  });
 }
 
 init();

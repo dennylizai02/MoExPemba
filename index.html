@@ -58,11 +58,6 @@
         <span class="brand-suffix" style="font-family:'Fraunces',serif;font-weight:600;">Pemba</span>
         <div class="tagline">O melhor das lojas de Pemba, escolhido a dedo para si.</div>
       </div>
-      <div class="auth-tabs">
-        <button class="auth-tab active" data-auth-tab="login">Entrar</button>
-        <button class="auth-tab" data-auth-tab="register">Criar conta</button>
-      </div>
-
       <div class="auth-form" id="authLoginForm">
         <div class="auth-error" id="loginError"></div>
         <div class="field">
@@ -75,6 +70,7 @@
           <input type="password" id="authLoginPass" placeholder="A sua palavra-passe">
         </div>
         <button class="btn-primary" id="authLoginBtn">Entrar</button>
+        <div class="auth-toggle">Não tem conta? <a id="showRegister">Criar conta</a></div>
       </div>
 
       <div class="auth-form" id="authRegisterForm" style="display:none;">
@@ -97,6 +93,7 @@
           <input type="password" id="authRegPass2" placeholder="Repita a palavra-passe">
         </div>
         <button class="btn-primary" id="authRegBtn">Criar conta</button>
+        <div class="auth-toggle">Já tem conta? <a id="showLogin">Entrar</a></div>
       </div>
     </div>
   </div>
