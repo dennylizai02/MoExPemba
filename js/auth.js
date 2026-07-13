@@ -11,7 +11,7 @@ export function isCurrentUserAdmin() {
 async function fetchProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, phone, role')
+    .select('id, name, phone, email, role')
     .eq('id', userId)
     .maybeSingle();
   if (error || !data) return null;
@@ -36,7 +36,21 @@ export async function registerUser(name, email, phone, password) {
   return { ok: true, confirmEmail: !data.session };
 }
 
-export async function loginUser(email, password) {
+export async function loginUser(identifier, password) {
+  let email = identifier;
+
+  const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
+  if (isPhone) {
+    const cleanPhone = identifier.replace(/\D/g, '');
+    const { data } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('phone', cleanPhone)
+      .maybeSingle();
+    if (!data || !data.email) return { error: "Telefone não encontrado" };
+    email = data.email;
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
 
@@ -57,7 +71,21 @@ export async function restoreSession() {
   return !!currentUserProfile;
 }
 
-export async function requestPasswordReset(email) {
+export async function requestPasswordReset(identifier) {
+  let email = identifier;
+
+  const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
+  if (isPhone) {
+    const cleanPhone = identifier.replace(/\D/g, '');
+    const { data } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('phone', cleanPhone)
+      .maybeSingle();
+    if (!data || !data.email) return { error: "Telefone não encontrado" };
+    email = data.email;
+  }
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + window.location.pathname
   });
