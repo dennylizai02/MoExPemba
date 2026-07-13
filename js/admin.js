@@ -189,6 +189,7 @@ export function showAuthView() {
   document.getElementById('authView').style.display = '';
   document.getElementById('publicView').style.display = 'none';
   document.getElementById('adminView').style.display = 'none';
+  document.querySelector('footer.site').style.display = '';
   document.getElementById('authLoginForm').style.display = '';
   document.getElementById('authRegisterForm').style.display = 'none';
   document.getElementById('authForgotForm').style.display = 'none';
@@ -201,12 +202,14 @@ export function showPublicView() {
   document.getElementById('authView').style.display = 'none';
   document.getElementById('publicView').style.display = '';
   document.getElementById('adminView').style.display = 'none';
+  document.querySelector('footer.site').style.display = '';
 }
 
 export function showAdminView() {
   document.getElementById('authView').style.display = 'none';
   document.getElementById('publicView').style.display = 'none';
   document.getElementById('adminView').style.display = '';
+  document.querySelector('footer.site').style.display = 'none';
   const adminContent = document.getElementById('adminView').querySelector('.admin-content');
   if (adminContent) adminContent.style.display = '';
   document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
