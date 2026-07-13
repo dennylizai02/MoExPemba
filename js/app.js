@@ -501,12 +501,11 @@ function setupEventListeners() {
       document.querySelectorAll('.admin-nav-btn').forEach(x => x.classList.remove('active'));
       t.classList.add('active');
       const tab = t.dataset.tab;
+      const content = document.getElementById('adminView').querySelector('.admin-content');
+      content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
       if (tab === 'store') {
         document.getElementById('publicView').style.display = '';
-        document.getElementById('adminView').querySelector('.admin-content').style.display = 'none';
       } else {
-        document.getElementById('publicView').style.display = 'none';
-        document.getElementById('adminView').querySelector('.admin-content').style.display = '';
         document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
         document.getElementById('tabOrders').style.display = tab === 'orders' ? 'block' : 'none';
         document.getElementById('tabProducts').style.display = tab === 'products' ? 'block' : 'none';

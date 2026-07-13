@@ -28,29 +28,6 @@
   </div>
 </header>
 
-<div id="publicView" style="display:none;">
-
-<section class="hero">
-  <div class="eyebrow">Visto nas lojas · Vendido aqui</div>
-  <h1>O melhor das lojas de Pemba, escolhido a dedo para si</h1>
-  <p>Percorremos as lojas da cidade para trazer-lhe os artigos mais bonitos e os melhores preços. Veja, escolha, encomende — nós tratamos do resto.</p>
-  <svg class="wave" viewBox="0 0 1000 60" preserveAspectRatio="none">
-    <path d="M0,30 C150,60 350,0 500,30 C650,60 850,0 1000,30" fill="none" stroke="#1C6E6E" stroke-width="2" opacity="0.5"/>
-    <path d="M0,42 C150,70 350,12 500,42 C650,70 850,12 1000,42" fill="none" stroke="#E8A33D" stroke-width="2" opacity="0.6"/>
-  </svg>
-</section>
-
-<div class="filters">
-  <input class="search" id="searchBox" placeholder="Procurar produtos...">
-  <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
-</div>
-
-<div class="featured-strip" id="featuredStrip"></div>
-<div class="grid" id="productGrid"></div>
-<div class="empty-state" id="emptyState" style="display:none;">Ainda não há produtos aqui. Volte em breve.</div>
-
-</div>
-
 <div id="authView" style="display:none;">
   <div class="auth-view">
     <div class="auth-card">
@@ -148,6 +125,25 @@
       </nav>
     </aside>
     <main class="admin-content">
+
+      <div id="publicView" style="display:none;">
+        <section class="hero">
+          <div class="eyebrow">Visto nas lojas · Vendido aqui</div>
+          <h1>O melhor das lojas de Pemba, escolhido a dedo para si</h1>
+          <p>Percorremos as lojas da cidade para trazer-lhe os artigos mais bonitos e os melhores preços. Veja, escolha, encomende — nós tratamos do resto.</p>
+          <svg class="wave" viewBox="0 0 1000 60" preserveAspectRatio="none">
+            <path d="M0,30 C150,60 350,0 500,30 C650,60 850,0 1000,30" fill="none" stroke="#1C6E6E" stroke-width="2" opacity="0.5"/>
+            <path d="M0,42 C150,70 350,12 500,42 C650,70 850,12 1000,42" fill="none" stroke="#E8A33D" stroke-width="2" opacity="0.6"/>
+          </svg>
+        </section>
+        <div class="filters">
+          <input class="search" id="searchBox" placeholder="Procurar produtos...">
+          <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="featured-strip" id="featuredStrip"></div>
+        <div class="grid" id="productGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none;">Ainda não há produtos aqui. Volte em breve.</div>
+      </div>
 
       <!-- Dashboard -->
       <div id="tabDashboard">

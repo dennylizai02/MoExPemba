@@ -200,26 +200,28 @@ export function showAuthView() {
 
 export function showPublicView() {
   document.getElementById('authView').style.display = 'none';
+  document.getElementById('adminView').style.display = '';
+  document.getElementById('adminView').querySelector('.admin-sidebar').style.display = 'none';
+  const content = document.getElementById('adminView').querySelector('.admin-content');
+  content.style.display = '';
+  content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
   document.getElementById('publicView').style.display = '';
-  document.getElementById('adminView').style.display = 'none';
   document.querySelector('footer.site').style.display = '';
 }
 
 export function showAdminView() {
   document.getElementById('authView').style.display = 'none';
-  document.getElementById('publicView').style.display = 'none';
   document.getElementById('adminView').style.display = '';
+  document.getElementById('adminView').querySelector('.admin-sidebar').style.display = '';
+  const content = document.getElementById('adminView').querySelector('.admin-content');
+  content.style.display = '';
+  content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
+  document.getElementById('publicView').style.display = 'none';
   document.querySelector('footer.site').style.display = 'none';
-  const adminContent = document.getElementById('adminView').querySelector('.admin-content');
-  if (adminContent) adminContent.style.display = '';
   document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
   const dashboardBtn = document.querySelector('[data-tab="dashboard"]');
   if (dashboardBtn) dashboardBtn.classList.add('active');
   document.getElementById('tabDashboard').style.display = 'block';
-  ['tabOrders', 'tabProducts', 'tabClients', 'tabRequests', 'tabSettings'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
 }
 
 export function updateHeaderUI(user) {
