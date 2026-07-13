@@ -138,12 +138,40 @@
     <button class="btn-secondary" id="adLogout" style="width:auto;padding:8px 16px;margin-bottom:20px;">← Sair do painel</button>
     <div id="adminPanel">
       <div class="tabs">
-        <button class="tab active" data-tab="products">Produtos</button>
+        <button class="tab active" data-tab="dashboard">Painel</button>
         <button class="tab" data-tab="orders">Encomendas</button>
+        <button class="tab" data-tab="products">Produtos</button>
+        <button class="tab" data-tab="clients">Clientes</button>
         <button class="tab" data-tab="requests">Pedidos personalizados</button>
         <button class="tab" data-tab="settings">Configurações</button>
       </div>
-      <div id="tabProducts">
+
+      <!-- Dashboard -->
+      <div id="tabDashboard">
+        <div class="dashboard-stats" id="dashboardStats"></div>
+        <div class="admin-section">
+          <h3>Encomendas recentes</h3>
+          <div id="dashboardRecentOrders"></div>
+        </div>
+      </div>
+
+      <!-- Encomendas -->
+      <div id="tabOrders" style="display:none;">
+        <div class="admin-section">
+          <h3>Encomendas</h3>
+          <div id="orderFilters" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="chip active" data-status-filter="all">Todas</button>
+            <button class="chip" data-status-filter="novo">Novas</button>
+            <button class="chip" data-status-filter="em curso">Em curso</button>
+            <button class="chip" data-status-filter="entregue">Entregues</button>
+            <button class="chip" data-status-filter="cancelado">Canceladas</button>
+          </div>
+          <div id="adminOrderList"></div>
+        </div>
+      </div>
+
+      <!-- Produtos -->
+      <div id="tabProducts" style="display:none;">
         <div class="admin-section">
           <h3>Adicionar / Editar produto</h3>
           <input type="hidden" id="editingId" value="">
@@ -171,18 +199,24 @@
           <div id="adminProductList"></div>
         </div>
       </div>
-      <div id="tabOrders" style="display:none;">
+
+      <!-- Clientes -->
+      <div id="tabClients" style="display:none;">
         <div class="admin-section">
-          <h3>Encomendas</h3>
-          <div id="adminOrderList"></div>
+          <h3>Clientes registados</h3>
+          <div id="adminClientList"></div>
         </div>
       </div>
+
+      <!-- Pedidos personalizados -->
       <div id="tabRequests" style="display:none;">
         <div class="admin-section">
           <h3>Pedidos personalizados</h3>
           <div id="adminRequestList"></div>
         </div>
       </div>
+
+      <!-- Configurações -->
       <div id="tabSettings" style="display:none;">
         <div class="admin-section">
           <h3>Zonas de entrega</h3>

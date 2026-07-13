@@ -1,5 +1,75 @@
 import { fmt } from './utils.js';
 
+const STATUS_OPTIONS = ['novo', 'em curso', 'entregue', 'cancelado'];
+
+const STATUS_COLORS = {
+  'novo': 'background:var(--mango);color:var(--ink);border-color:var(--mango);',
+  'em curso': 'background:var(--teal);color:var(--paper);border-color:var(--teal);',
+  'entregue': 'background:#4caf50;color:#fff;border-color:#4caf50;',
+  'cancelado': 'background:var(--coral);color:#fff;border-color:var(--coral);'
+};
+
+export function renderDashboard(orders, products, customRequests) {
+  const wrap = document.getElementById('dashboardStats');
+  if (!wrap) return;
+
+  const totalOrders = orders.length;
+  const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+  const pending = orders.filter(o => o.status === 'novo' || o.status === 'em curso').length;
+  const delivered = orders.filter(o => o.status === 'entregue').length;
+  const totalProducts = products.length;
+  const totalSold = products.reduce((s, p) => s + (p.sold || 0), 0);
+  const pendingRequests = customRequests.length;
+
+  wrap.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">${fmt(revenue)}</div>
+      <div class="stat-label">Receita total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${totalOrders}</div>
+      <div class="stat-label">Encomendas</div>
+    </div>
+    <div class="stat-card accent">
+      <div class="stat-value">${pending}</div>
+      <div class="stat-label">Pendentes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${delivered}</div>
+      <div class="stat-label">Entregues</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${totalProducts}</div>
+      <div class="stat-label">Produtos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${totalSold}</div>
+      <div class="stat-label">Itens vendidos</div>
+    </div>
+    <div class="stat-card${pendingRequests > 0 ? ' accent' : ''}">
+      <div class="stat-value">${pendingRequests}</div>
+      <div class="stat-label">Pedidos personalizados</div>
+    </div>
+  `;
+}
+
+export function renderDashboardRecentOrders(orders) {
+  const wrap = document.getElementById('dashboardRecentOrders');
+  if (!wrap) return;
+  const recent = orders.slice(0, 5);
+  if (recent.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.55);">Ainda não há encomendas.</p>'; return; }
+  wrap.innerHTML = "";
+  recent.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'order-item';
+    div.innerHTML = `
+      <div class="oh"><span>${o.name} · ${o.phone}</span><span class="mono">${fmt(o.total)}</span></div>
+      <div><span class="info-pill" style="${STATUS_COLORS[o.status] || ''}">${o.status}</span> ${o.addr}${o.note ? ' — ' + o.note : ''}</div>
+      <div class="meta">${o.date}</div>`;
+    wrap.appendChild(div);
+  });
+}
+
 export function renderAdminProductList(products, onEdit, onDelete) {
   const wrap = document.getElementById('adminProductList');
   if (!wrap) return;
@@ -21,20 +91,31 @@ export function renderAdminProductList(products, onEdit, onDelete) {
   wrap.querySelectorAll('[data-del]').forEach(b => b.onclick = () => onDelete(b.dataset.del));
 }
 
-export function renderAdminOrderList(orders) {
+export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
   const wrap = document.getElementById('adminOrderList');
   if (!wrap) return;
-  if (orders.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.55);">Ainda não há encomendas.</p>'; return; }
+  const filtered = statusFilter && statusFilter !== 'all'
+    ? orders.filter(o => o.status === statusFilter)
+    : orders;
+  if (filtered.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.55);">Nenhuma encomenda encontrada.</p>'; return; }
   wrap.innerHTML = "";
-  orders.forEach(o => {
+  filtered.forEach((o, i) => {
+    const originalIndex = orders.indexOf(o);
     const div = document.createElement('div');
     div.className = 'order-item';
+    const statusBtns = STATUS_OPTIONS.map(s =>
+      `<button class="status-btn${o.status === s ? ' active' : ''}" data-status="${s}" data-idx="${originalIndex}" style="${STATUS_COLORS[s]}">${s}</button>`
+    ).join('');
     div.innerHTML = `
       <div class="oh"><span>${o.name} · ${o.phone}</span><span class="mono">${fmt(o.total)}</span></div>
-      <div><span class="info-pill" style="background:var(--mango);color:var(--ink);border-color:var(--mango);">${o.status}</span> ${o.addr}${o.note ? ' — ' + o.note : ''}</div>
+      <div class="order-status-row">${statusBtns}</div>
       <div class="items">${o.items.map(i => `${i.qty}x ${i.name}${i.size ? ' (' + i.size + ')' : ''}${i.color ? ' · ' + i.color : ''}`).join(', ')}</div>
+      <div style="margin:4px 0;font-size:0.82rem;">${o.addr}${o.note ? ' — ' + o.note : ''}</div>
       <div class="meta">${o.date}</div>`;
     wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.status-btn').forEach(b => {
+    b.onclick = () => onStatusChange(parseInt(b.dataset.idx), b.dataset.status);
   });
 }
 
@@ -51,6 +132,28 @@ export function renderAdminRequestList(requests) {
       <div>${r.desc}</div>
       <div class="meta">${r.date}</div>`;
     wrap.appendChild(div);
+  });
+}
+
+export function renderAdminClientList(clients) {
+  const wrap = document.getElementById('adminClientList');
+  if (!wrap) return;
+  if (clients.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.55);">Nenhum cliente registado.</p>'; return; }
+  wrap.innerHTML = "";
+  clients.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'admin-list-item';
+    const roleBadge = c.role === 'admin'
+      ? '<span class="user-role" style="font-size:0.6rem;">Admin</span>'
+      : '';
+    row.innerHTML = `
+      <div class="client-avatar">${(c.name || '?')[0].toUpperCase()}</div>
+      <div class="info">
+        <b>${c.name || 'Sem nome'}</b> ${roleBadge}<br>
+        <span style="font-size:0.8rem;color:rgba(18,48,46,0.6);">${c.email || '—'} · ${c.phone || '—'}</span>
+      </div>
+      <div class="meta" style="font-size:0.72rem;color:rgba(18,48,46,0.4);">${c.created_at ? new Date(c.created_at).toLocaleDateString('pt-PT') : ''}</div>`;
+    wrap.appendChild(row);
   });
 }
 

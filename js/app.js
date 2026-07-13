@@ -1,4 +1,4 @@
-import { WHATSAPP_NUMBER } from './config.js';
+import { WHATSAPP_NUMBER, supabase } from './config.js';
 import { fmt, uid, showToast } from './utils.js';
 import {
   registerUser, loginUser, logout, restoreSession, getCurrentUser,
@@ -13,13 +13,15 @@ import { renderCart, cartTotalValue, openCartDrawer, closeCart, closeAllModals }
 import {
   renderAdminProductList, renderAdminOrderList, renderAdminRequestList,
   renderZonesList, renderPaymentsList, showAuthView, showPublicView,
-  showAdminView, updateHeaderUI, showAuthError
+  showAdminView, updateHeaderUI, showAuthError,
+  renderDashboard, renderDashboardRecentOrders, renderAdminClientList
 } from './admin.js';
 
 const state = {
   products: [], orders: [], customRequests: [], favorites: [],
   zones: [], payments: [], cart: [], activeCategory: "Todos",
-  currentProductId: null, selectedSize: null, selectedColor: null
+  currentProductId: null, selectedSize: null, selectedColor: null,
+  clients: [], orderFilter: 'all'
 };
 
 function fmtPrice(n) { return new Intl.NumberFormat('pt-MZ').format(n) + " MT"; }
@@ -136,11 +138,26 @@ function openProductModalHandler(id) {
   document.getElementById('productModal').classList.add('show');
 }
 
+async function loadClients() {
+  const { data } = await supabase.from('profiles').select('id, name, phone, email, role, created_at').order('created_at', { ascending: false });
+  state.clients = data || [];
+}
+
+function handleOrderStatusChange(index, newStatus) {
+  state.orders[index].status = newStatus;
+  saveOrders(state.orders);
+  renderAdminState();
+  showToast("Status atualizado");
+}
+
 function renderAdminState() {
   if (document.getElementById('adminView').style.display === 'none') return;
+  renderDashboard(state.orders, state.products, state.customRequests);
+  renderDashboardRecentOrders(state.orders);
   renderAdminProductList(state.products, handleEditProduct, handleDeleteProduct);
-  renderAdminOrderList(state.orders);
+  renderAdminOrderList(state.orders, handleOrderStatusChange, state.orderFilter);
   renderAdminRequestList(state.customRequests);
+  renderAdminClientList(state.clients);
   renderZonesList(state.zones, handleRemoveZone);
   renderPaymentsList(state.payments, handleRemovePayment);
 }
@@ -249,6 +266,7 @@ function navigateTo(view) {
 async function init() {
   const data = await loadData();
   Object.assign(state, data);
+  await loadClients();
 
   if (isRecoverySession()) {
     window.history.replaceState(null, '', window.location.pathname);
@@ -482,10 +500,21 @@ function setupEventListeners() {
     t.onclick = () => {
       document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
       t.classList.add('active');
-      document.getElementById('tabProducts').style.display = t.dataset.tab === 'products' ? 'block' : 'none';
+      document.getElementById('tabDashboard').style.display = t.dataset.tab === 'dashboard' ? 'block' : 'none';
       document.getElementById('tabOrders').style.display = t.dataset.tab === 'orders' ? 'block' : 'none';
+      document.getElementById('tabProducts').style.display = t.dataset.tab === 'products' ? 'block' : 'none';
+      document.getElementById('tabClients').style.display = t.dataset.tab === 'clients' ? 'block' : 'none';
       document.getElementById('tabRequests').style.display = t.dataset.tab === 'requests' ? 'block' : 'none';
       document.getElementById('tabSettings').style.display = t.dataset.tab === 'settings' ? 'block' : 'none';
+    };
+  });
+
+  document.querySelectorAll('[data-status-filter]').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('[data-status-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.orderFilter = btn.dataset.statusFilter;
+      renderAdminOrderList(state.orders, handleOrderStatusChange, state.orderFilter);
     };
   });
 
