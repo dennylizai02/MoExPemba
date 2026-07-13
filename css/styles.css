@@ -298,7 +298,9 @@ header.site{
   padding:9px 12px;
   border-radius:6px;
   font-size:0.85rem;
+  transition:all .15s;
 }
+.view-btn:hover{ background:rgba(28,110,110,0.06); border-color:var(--teal); color:var(--teal-dark); }
 
 /* ---------- Cart Drawer ---------- */
 .overlay{
@@ -334,15 +336,19 @@ header.site{
 .cart-line .info .n{ font-weight:600; font-size:0.92rem; }
 .cart-line .info .p{ font-family:'Space Mono',monospace; color:var(--coral); font-size:0.85rem; }
 .qty{ display:flex; align-items:center; gap:6px; }
-.qty button{ background:var(--sand); border:1px solid var(--line); width:24px;height:24px;border-radius:5px; }
-.rm{ background:none;border:none;color:var(--coral); font-size:0.8rem; text-decoration:underline; margin-left:8px;}
+.qty button{ background:var(--sand); border:1px solid var(--line); width:24px;height:24px;border-radius:5px; transition:all .15s; }
+.qty button:hover{ background:var(--line); }
+.rm{ background:none;border:none;color:var(--coral); font-size:0.8rem; text-decoration:underline; margin-left:8px; transition:opacity .15s; }
+.rm:hover{ opacity:0.7; }
 .drawer-foot{ padding:18px 22px; border-top:1px dashed var(--line); }
 .total-row{ display:flex; justify-content:space-between; font-size:1.1rem; margin-bottom:14px; }
 .total-row .v{ font-family:'Space Mono',monospace; color:var(--coral); font-weight:700; }
 .checkout-btn{
   width:100%; background:var(--mango); border:none; color:var(--ink);
   padding:13px; border-radius:8px; font-weight:700; font-size:1rem;
+  transition:all .15s;
 }
+.checkout-btn:hover{ filter:brightness(0.92); }
 .cart-empty{ padding:40px 10px; text-align:center; color:rgba(18,48,46,0.55); }
 
 /* ---------- Modal ---------- */

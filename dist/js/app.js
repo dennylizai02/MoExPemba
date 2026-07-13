@@ -298,6 +298,9 @@ function setupEventListeners() {
   document.getElementById('openCart').onclick = openCartDrawer;
   document.getElementById('closeCart').onclick = closeCart;
   document.getElementById('overlay').onclick = () => { closeCart(); closeAllModals(); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeCart(); closeAllModals(); }
+  });
 
   document.getElementById('pmClose').onclick = () => document.getElementById('productModal').classList.remove('show');
   document.getElementById('pmAdd').onclick = () => {
@@ -364,12 +367,15 @@ function setupEventListeners() {
   };
 
   document.getElementById('ckSave').onclick = async () => {
+    const btn = document.getElementById('ckSave');
     const name = document.getElementById('ckName').value.trim();
     const phone = document.getElementById('ckPhone').value.trim();
     const addr = resolveCheckoutAddress();
     const note = document.getElementById('ckNote').value.trim();
     if (!name || !phone || !addr) { showToast("Preencha nome, telefone e zona"); return; }
+    btn.disabled = true; btn.textContent = 'A registar...';
     await handleRegisterOrder(name, phone, addr, note);
+    btn.disabled = false; btn.textContent = 'Registar encomenda';
     showToast("Pedido registado! Vamos entrar em contacto.");
     finishCheckout();
   };
@@ -378,12 +384,15 @@ function setupEventListeners() {
 
   document.getElementById('reqClose').onclick = () => document.getElementById('requestModal').classList.remove('show');
   document.getElementById('reqSend').onclick = async () => {
+    const btn = document.getElementById('reqSend');
     const name = document.getElementById('reqName').value.trim();
     const phone = document.getElementById('reqPhone').value.trim();
     const desc = document.getElementById('reqDesc').value.trim();
     if (!name || !phone || !desc) { showToast("Preencha todos os campos"); return; }
+    btn.disabled = true; btn.textContent = 'A enviar...';
     state.customRequests.unshift({ id: uid(), name, phone, desc, date: new Date().toLocaleString('pt-PT') });
     await saveRequests(state.customRequests);
+    btn.disabled = false; btn.textContent = 'Enviar pedido';
     document.getElementById('reqName').value = '';
     document.getElementById('reqPhone').value = '';
     document.getElementById('reqDesc').value = '';
@@ -422,10 +431,13 @@ function setupEventListeners() {
   };
 
   document.getElementById('authLoginBtn').onclick = async () => {
+    const btn = document.getElementById('authLoginBtn');
     const email = document.getElementById('authLoginEmail').value.trim();
     const pass = document.getElementById('authLoginPass').value;
     if (!email || !pass) { showAuthError('loginError', 'Preencha todos os campos'); return; }
+    btn.disabled = true; btn.textContent = 'A entrar...';
     const result = await loginUser(email, pass);
+    btn.disabled = false; btn.textContent = 'Entrar';
     if (result.error) { showAuthError('loginError', result.error); return; }
     navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
     render();
@@ -435,6 +447,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('authRegBtn').onclick = async () => {
+    const btn = document.getElementById('authRegBtn');
     const name = document.getElementById('authRegName').value.trim();
     const email = document.getElementById('authRegEmail').value.trim();
     const phone = document.getElementById('authRegPhone').value.trim();
@@ -442,7 +455,9 @@ function setupEventListeners() {
     const pass2 = document.getElementById('authRegPass2').value;
     if (!name || !email || !phone || !pass || !pass2) { showAuthError('registerError', 'Preencha todos os campos'); return; }
     if (pass !== pass2) { showAuthError('registerError', 'As senhas não coincidem'); return; }
+    btn.disabled = true; btn.textContent = 'A criar conta...';
     const result = await registerUser(name, email, phone, pass);
+    btn.disabled = false; btn.textContent = 'Criar conta';
     if (result.error) { showAuthError('registerError', result.error); return; }
     if (result.confirmEmail) {
       showAuthError('registerError', 'Conta criada! Verifique o seu email para confirmar o registo.');
@@ -459,9 +474,12 @@ function setupEventListeners() {
   });
 
   document.getElementById('authForgotBtn').onclick = async () => {
+    const btn = document.getElementById('authForgotBtn');
     const email = document.getElementById('authForgotEmail').value.trim();
     if (!email) { showAuthError('forgotError', 'Insira o seu email'); return; }
+    btn.disabled = true; btn.textContent = 'A enviar...';
     const result = await requestPasswordReset(email);
+    btn.disabled = false; btn.textContent = 'Enviar email';
     if (result.error) { showAuthError('forgotError', result.error); return; }
     showAuthError('forgotError', 'Email enviado! Verifique a sua caixa de entrada.');
     document.getElementById('forgotError').style.background = 'rgba(28,110,110,0.1)';
