@@ -1,4 +1,4 @@
-import { fmt } from './utils.js';
+import { fmt, esc } from './utils.js';
 
 const STATUS_OPTIONS = ['novo', 'em curso', 'entregue', 'cancelado'];
 
@@ -63,8 +63,8 @@ export function renderDashboardRecentOrders(orders) {
     const div = document.createElement('div');
     div.className = 'order-item';
     div.innerHTML = `
-      <div class="oh"><span>${o.name} · ${o.phone}</span><span class="mono">${fmt(o.total)}</span></div>
-      <div><span class="info-pill" style="${STATUS_COLORS[o.status] || ''}">${o.status}</span> ${o.addr}${o.note ? ' — ' + o.note : ''}</div>
+      <div class="oh"><span>${esc(o.name)} · ${esc(o.phone)}</span><span class="mono">${fmt(o.total)}</span></div>
+      <div><span class="info-pill" style="${STATUS_COLORS[o.status] || ''}">${esc(o.status)}</span> ${esc(o.addr)}${o.note ? ' — ' + esc(o.note) : ''}</div>
       <div class="meta">${o.date}</div>`;
     wrap.appendChild(div);
   });
@@ -79,8 +79,8 @@ export function renderAdminProductList(products, onEdit, onDelete) {
     const row = document.createElement('div');
     row.className = 'admin-list-item';
     row.innerHTML = `
-      <img src="${p.img}">
-      <div class="info"><b>${p.name}</b><br><span class="mono">${fmt(p.price)}</span> · ${p.category || '—'} · ${p.sold || 0} vendidos</div>
+      <img src="${esc(p.img)}">
+      <div class="info"><b>${esc(p.name)}</b><br><span class="mono">${fmt(p.price)}</span> · ${esc(p.category) || '—'} · ${p.sold || 0} vendidos</div>
       <div class="actions">
         <button data-edit="${p.id}">Editar</button>
         <button class="danger" data-del="${p.id}">Apagar</button>
@@ -107,10 +107,10 @@ export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
       `<button class="status-btn${o.status === s ? ' active' : ''}" data-status="${s}" data-idx="${originalIndex}" style="${STATUS_COLORS[s]}">${s}</button>`
     ).join('');
     div.innerHTML = `
-      <div class="oh"><span>${o.name} · ${o.phone}</span><span class="mono">${fmt(o.total)}</span></div>
+      <div class="oh"><span>${esc(o.name)} · ${esc(o.phone)}</span><span class="mono">${fmt(o.total)}</span></div>
       <div class="order-status-row">${statusBtns}</div>
-      <div class="items">${o.items.map(i => `${i.qty}x ${i.name}${i.size ? ' (' + i.size + ')' : ''}${i.color ? ' · ' + i.color : ''}`).join(', ')}</div>
-      <div style="margin:4px 0;font-size:0.82rem;">${o.addr}${o.note ? ' — ' + o.note : ''}</div>
+      <div class="items">${o.items.map(i => `${i.qty}x ${esc(i.name)}${i.size ? ' (' + esc(i.size) + ')' : ''}${i.color ? ' · ' + esc(i.color) : ''}`).join(', ')}</div>
+      <div style="margin:4px 0;font-size:0.82rem;">${esc(o.addr)}${o.note ? ' — ' + esc(o.note) : ''}</div>
       <div class="meta">${o.date}</div>`;
     wrap.appendChild(div);
   });
@@ -128,8 +128,8 @@ export function renderAdminRequestList(requests) {
     const div = document.createElement('div');
     div.className = 'order-item';
     div.innerHTML = `
-      <div class="oh"><span>${r.name} · ${r.phone}</span></div>
-      <div>${r.desc}</div>
+      <div class="oh"><span>${esc(r.name)} · ${esc(r.phone)}</span></div>
+      <div>${esc(r.desc)}</div>
       <div class="meta">${r.date}</div>`;
     wrap.appendChild(div);
   });
@@ -147,10 +147,10 @@ export function renderAdminClientList(clients) {
       ? '<span class="user-role" style="font-size:0.6rem;">Admin</span>'
       : '';
     row.innerHTML = `
-      <div class="client-avatar">${(c.name || '?')[0].toUpperCase()}</div>
+      <div class="client-avatar">${esc((c.name || '?')[0].toUpperCase())}</div>
       <div class="info">
-        <b>${c.name || 'Sem nome'}</b> ${roleBadge}<br>
-        <span style="font-size:0.8rem;color:rgba(18,48,46,0.6);">${c.email || '—'} · ${c.phone || '—'}</span>
+        <b>${esc(c.name) || 'Sem nome'}</b> ${roleBadge}<br>
+        <span style="font-size:0.8rem;color:rgba(18,48,46,0.6);">${esc(c.email) || '—'} · ${esc(c.phone) || '—'}</span>
       </div>
       <div class="meta" style="font-size:0.72rem;color:rgba(18,48,46,0.4);">${c.created_at ? new Date(c.created_at).toLocaleDateString('pt-PT') : ''}</div>`;
     wrap.appendChild(row);

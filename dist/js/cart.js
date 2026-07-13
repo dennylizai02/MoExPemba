@@ -1,4 +1,4 @@
-import { fmt } from './utils.js';
+import { fmt, esc } from './utils.js';
 import { getCurrentUser } from './auth.js';
 import { cartStorage } from './storage.js';
 
@@ -16,6 +16,9 @@ export function renderCart(cart, products) {
     document.getElementById('cartTotal').textContent = fmt(0);
     return;
   }
+  for (let i = cart.length - 1; i >= 0; i--) {
+    if (!products.find(pr => pr.id === cart[i].id)) cart.splice(i, 1);
+  }
   let total = 0;
   wrap.innerHTML = "";
   cart.forEach(l => {
@@ -26,10 +29,10 @@ export function renderCart(cart, products) {
     const row = document.createElement('div');
     row.className = 'cart-line';
     row.innerHTML = `
-      <img src="${p.img}">
+      <img src="${esc(p.img)}">
       <div class="info">
-        <div class="n">${p.name}</div>
-        ${variantLabel ? `<div style="font-size:0.75rem;color:rgba(18,48,46,0.6);">${variantLabel}</div>` : ''}
+        <div class="n">${esc(p.name)}</div>
+        ${variantLabel ? `<div style="font-size:0.75rem;color:rgba(18,48,46,0.6);">${esc(variantLabel)}</div>` : ''}
         <div class="p">${fmt(p.price)}</div>
         <div class="qty">
           <button data-dec="${l.key}">−</button>

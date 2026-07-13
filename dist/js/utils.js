@@ -6,6 +6,12 @@ export function uid() {
   return 'p' + Date.now() + Math.floor(Math.random() * 1000);
 }
 
+const escapeMap = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+export function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, c => escapeMap[c]);
+}
+
 let toastTimer = null;
 export function showToast(msg) {
   const t = document.getElementById('toast');

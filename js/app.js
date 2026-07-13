@@ -290,6 +290,8 @@ async function init() {
   }
   render();
   setupEventListeners();
+  const loader = document.getElementById('appLoader');
+  if (loader) { loader.classList.add('hide'); setTimeout(() => loader.remove(), 400); }
 }
 
 function setupEventListeners() {

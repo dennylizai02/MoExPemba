@@ -1,4 +1,4 @@
-import { fmt } from './utils.js';
+import { fmt, esc } from './utils.js';
 
 export function renderProductCards(list, container, onAdd, onView, onFav, favorites) {
   container.innerHTML = "";
@@ -7,12 +7,12 @@ export function renderProductCards(list, container, onAdd, onView, onFav, favori
     const card = document.createElement('div');
     card.className = 'tag-card';
     card.innerHTML = `
-      ${p.badge ? `<div class="tag-badge">${p.badge}</div>` : ''}
+      ${p.badge ? `<div class="tag-badge">${esc(p.badge)}</div>` : ''}
       <button class="fav-btn ${isFav ? 'active' : ''}" data-fav="${p.id}">${isFav ? '♥' : '♡'}</button>
-      <img class="tag-img" src="${p.img}" alt="${p.name}">
+      <img class="tag-img" src="${esc(p.img)}" alt="${esc(p.name)}">
       <div class="tag-body">
-        <div class="tag-cat">${p.category || ''}</div>
-        <div class="tag-name">${p.name}</div>
+        <div class="tag-cat">${esc(p.category)}</div>
+        <div class="tag-name">${esc(p.name)}</div>
         <div class="tag-price">${fmt(p.price)}</div>
         ${p.entrega ? `<div class="tag-delivery">🚚 Entrega: ${p.entrega}</div>` : ''}
         ${p.sold ? `<div class="tag-sold">${p.sold} vendidos</div>` : ''}
@@ -89,8 +89,8 @@ export function renderReviews(p) {
   if (reviews.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.5);font-size:0.85rem;">Seja o primeiro a avaliar este produto.</p>'; return; }
   wrap.innerHTML = reviews.map(r => `
     <div class="review-item">
-      <div class="rh"><span>${r.name}</span><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></div>
-      <div>${r.comment}</div>
+      <div class="rh"><span>${esc(r.name)}</span><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></div>
+      <div>${esc(r.comment)}</div>
       <div style="font-size:0.72rem;color:rgba(18,48,46,0.5);">${r.date}</div>
     </div>`).join('');
 }
@@ -98,5 +98,5 @@ export function renderReviews(p) {
 export function matchesSearch(p, term) {
   if (!term) return true;
   const hay = `${p.name} ${p.category || ''} ${p.desc || ''} ${p.material || ''}`.toLowerCase();
-  return term.split(/\s+/).some(word => word.length > 1 && hay.includes(word)) || hay.includes(term);
+  return term.split(/\s+/).every(word => word.length > 1 && hay.includes(word));
 }
