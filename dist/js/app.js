@@ -1,8 +1,9 @@
-import { WHATSAPP_NUMBER } from './config.js';
+import { WHATSAPP_NUMBER, supabase } from './config.js';
 import { fmt, uid, showToast } from './utils.js';
 import {
-  loadUsers, saveUsers, seedAdmin, registerUser, loginUser,
-  logout, restoreSession, getCurrentUser, isCurrentUserAdmin
+  registerUser, loginUser, logout, restoreSession, getCurrentUser,
+  isCurrentUserAdmin, requestPasswordReset, completePasswordReset,
+  isRecoverySession
 } from './auth.js';
 import {
   loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments
@@ -12,13 +13,15 @@ import { renderCart, cartTotalValue, openCartDrawer, closeCart, closeAllModals }
 import {
   renderAdminProductList, renderAdminOrderList, renderAdminRequestList,
   renderZonesList, renderPaymentsList, showAuthView, showPublicView,
-  showAdminView, updateHeaderUI, showAuthError
+  showAdminView, updateHeaderUI, showAuthError,
+  renderDashboard, renderDashboardRecentOrders, renderAdminClientList
 } from './admin.js';
 
 const state = {
   products: [], orders: [], customRequests: [], favorites: [],
   zones: [], payments: [], cart: [], activeCategory: "Todos",
-  currentProductId: null, selectedSize: null, selectedColor: null
+  currentProductId: null, selectedSize: null, selectedColor: null,
+  clients: [], orderFilter: 'all'
 };
 
 function fmtPrice(n) { return new Intl.NumberFormat('pt-MZ').format(n) + " MT"; }
@@ -135,11 +138,26 @@ function openProductModalHandler(id) {
   document.getElementById('productModal').classList.add('show');
 }
 
+async function loadClients() {
+  const { data } = await supabase.from('profiles').select('id, name, phone, email, role, created_at').order('created_at', { ascending: false });
+  state.clients = data || [];
+}
+
+function handleOrderStatusChange(index, newStatus) {
+  state.orders[index].status = newStatus;
+  saveOrders(state.orders);
+  renderAdminState();
+  showToast("Status atualizado");
+}
+
 function renderAdminState() {
   if (document.getElementById('adminView').style.display === 'none') return;
+  renderDashboard(state.orders, state.products, state.customRequests);
+  renderDashboardRecentOrders(state.orders);
   renderAdminProductList(state.products, handleEditProduct, handleDeleteProduct);
-  renderAdminOrderList(state.orders);
+  renderAdminOrderList(state.orders, handleOrderStatusChange, state.orderFilter);
   renderAdminRequestList(state.customRequests);
+  renderAdminClientList(state.clients);
   renderZonesList(state.zones, handleRemoveZone);
   renderPaymentsList(state.payments, handleRemovePayment);
 }
@@ -248,10 +266,16 @@ function navigateTo(view) {
 async function init() {
   const data = await loadData();
   Object.assign(state, data);
-  await loadUsers();
-  await seedAdmin();
+  await loadClients();
 
-  if (restoreSession()) {
+  if (isRecoverySession()) {
+    window.history.replaceState(null, '', window.location.pathname);
+    document.getElementById('authView').style.display = '';
+    document.getElementById('authLoginForm').style.display = 'none';
+    document.getElementById('authRegisterForm').style.display = 'none';
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authResetForm').style.display = '';
+  } else if (await restoreSession()) {
     navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
   } else {
     navigateTo('auth');
@@ -357,23 +381,41 @@ function setupEventListeners() {
     showToast("Pedido enviado! Vamos procurar para si.");
   };
 
-  document.querySelectorAll('[data-auth-tab]').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('[data-auth-tab]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const tab = btn.dataset.authTab;
-      document.getElementById('authLoginForm').style.display = tab === 'login' ? '' : 'none';
-      document.getElementById('authRegisterForm').style.display = tab === 'register' ? '' : 'none';
-      document.getElementById('loginError').classList.remove('show');
-      document.getElementById('registerError').classList.remove('show');
-    };
-  });
+  document.getElementById('showRegister').onclick = () => {
+    document.getElementById('authLoginForm').style.display = 'none';
+    document.getElementById('authRegisterForm').style.display = '';
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authResetForm').style.display = 'none';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('registerError').classList.remove('show');
+  };
+  document.getElementById('showLogin').onclick = () => {
+    document.getElementById('authRegisterForm').style.display = 'none';
+    document.getElementById('authLoginForm').style.display = '';
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authResetForm').style.display = 'none';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('registerError').classList.remove('show');
+  };
+  document.getElementById('showForgotPassword').onclick = () => {
+    document.getElementById('authLoginForm').style.display = 'none';
+    document.getElementById('authRegisterForm').style.display = 'none';
+    document.getElementById('authForgotForm').style.display = '';
+    document.getElementById('authResetForm').style.display = 'none';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('forgotError').classList.remove('show');
+  };
+  document.getElementById('showLoginFromForgot').onclick = () => {
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authLoginForm').style.display = '';
+    document.getElementById('forgotError').classList.remove('show');
+  };
 
   document.getElementById('authLoginBtn').onclick = async () => {
-    const phone = document.getElementById('authLoginPhone').value.trim();
+    const email = document.getElementById('authLoginEmail').value.trim();
     const pass = document.getElementById('authLoginPass').value;
-    if (!phone || !pass) { showAuthError('loginError', 'Preencha todos os campos'); return; }
-    const result = await loginUser(phone, pass);
+    if (!email || !pass) { showAuthError('loginError', 'Preencha todos os campos'); return; }
+    const result = await loginUser(email, pass);
     if (result.error) { showAuthError('loginError', result.error); return; }
     navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
     render();
@@ -384,20 +426,51 @@ function setupEventListeners() {
 
   document.getElementById('authRegBtn').onclick = async () => {
     const name = document.getElementById('authRegName').value.trim();
+    const email = document.getElementById('authRegEmail').value.trim();
     const phone = document.getElementById('authRegPhone').value.trim();
     const pass = document.getElementById('authRegPass').value;
     const pass2 = document.getElementById('authRegPass2').value;
-    if (!name || !phone || !pass || !pass2) { showAuthError('registerError', 'Preencha todos os campos'); return; }
+    if (!name || !email || !phone || !pass || !pass2) { showAuthError('registerError', 'Preencha todos os campos'); return; }
     if (pass !== pass2) { showAuthError('registerError', 'As senhas não coincidem'); return; }
-    const result = await registerUser(name, phone, pass);
+    const result = await registerUser(name, email, phone, pass);
     if (result.error) { showAuthError('registerError', result.error); return; }
-    navigateTo('public');
-    render();
-    showToast("Conta criada com sucesso!");
+    if (result.confirmEmail) {
+      showAuthError('registerError', 'Conta criada! Verifique o seu email para confirmar o registo.');
+      document.getElementById('registerError').style.background = 'rgba(28,110,110,0.1)';
+      document.getElementById('registerError').style.color = 'var(--teal)';
+    } else {
+      navigateTo('public');
+      render();
+      showToast("Conta criada com sucesso!");
+    }
   };
   document.getElementById('authRegPass2').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('authRegBtn').click();
   });
+
+  document.getElementById('authForgotBtn').onclick = async () => {
+    const email = document.getElementById('authForgotEmail').value.trim();
+    if (!email) { showAuthError('forgotError', 'Insira o seu email'); return; }
+    const result = await requestPasswordReset(email);
+    if (result.error) { showAuthError('forgotError', result.error); return; }
+    showAuthError('forgotError', 'Email enviado! Verifique a sua caixa de entrada.');
+    document.getElementById('forgotError').style.background = 'rgba(28,110,110,0.1)';
+    document.getElementById('forgotError').style.color = 'var(--teal)';
+  };
+
+  document.getElementById('authResetBtn').onclick = async () => {
+    const pass = document.getElementById('authResetPass').value;
+    const pass2 = document.getElementById('authResetPass2').value;
+    if (!pass || !pass2) { showAuthError('resetError', 'Preencha todos os campos'); return; }
+    if (pass !== pass2) { showAuthError('resetError', 'As senhas não coincidem'); return; }
+    if (pass.length < 6) { showAuthError('resetError', 'Palavra-passe deve ter pelo menos 6 caracteres'); return; }
+    const result = await completePasswordReset(pass);
+    if (result.error) { showAuthError('resetError', result.error); return; }
+    showToast("Senha redefinida com sucesso!");
+    window.location.hash = '';
+    navigateTo('public');
+    render();
+  };
 
   document.getElementById('openAdmin').onclick = () => {
     if (!getCurrentUser() || !isCurrentUserAdmin()) { showToast("Acesso não autorizado"); return; }
@@ -415,22 +488,32 @@ function setupEventListeners() {
     render();
   };
 
-  document.getElementById('userInfo').addEventListener('click', (e) => {
-    if (e.target.id === 'userLogoutBtn') {
-      logout();
-      navigateTo('auth');
-      render();
-    }
+  document.querySelectorAll('.admin-nav-btn').forEach(t => {
+    t.onclick = () => {
+      document.querySelectorAll('.admin-nav-btn').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const tab = t.dataset.tab;
+      const content = document.getElementById('adminView').querySelector('.admin-content');
+      content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
+      if (tab === 'store') {
+        document.getElementById('publicView').style.display = '';
+      } else {
+        document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+        document.getElementById('tabOrders').style.display = tab === 'orders' ? 'block' : 'none';
+        document.getElementById('tabProducts').style.display = tab === 'products' ? 'block' : 'none';
+        document.getElementById('tabClients').style.display = tab === 'clients' ? 'block' : 'none';
+        document.getElementById('tabRequests').style.display = tab === 'requests' ? 'block' : 'none';
+        document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
+      }
+    };
   });
 
-  document.querySelectorAll('.tab').forEach(t => {
-    t.onclick = () => {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      document.getElementById('tabProducts').style.display = t.dataset.tab === 'products' ? 'block' : 'none';
-      document.getElementById('tabOrders').style.display = t.dataset.tab === 'orders' ? 'block' : 'none';
-      document.getElementById('tabRequests').style.display = t.dataset.tab === 'requests' ? 'block' : 'none';
-      document.getElementById('tabSettings').style.display = t.dataset.tab === 'settings' ? 'block' : 'none';
+  document.querySelectorAll('[data-status-filter]').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('[data-status-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.orderFilter = btn.dataset.statusFilter;
+      renderAdminOrderList(state.orders, handleOrderStatusChange, state.orderFilter);
     };
   });
 

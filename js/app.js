@@ -488,14 +488,6 @@ function setupEventListeners() {
     render();
   };
 
-  document.getElementById('userInfo').addEventListener('click', (e) => {
-    if (e.target.id === 'userLogoutBtn') {
-      logout();
-      navigateTo('auth');
-      render();
-    }
-  });
-
   document.querySelectorAll('.admin-nav-btn').forEach(t => {
     t.onclick = () => {
       document.querySelectorAll('.admin-nav-btn').forEach(x => x.classList.remove('active'));

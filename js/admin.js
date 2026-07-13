@@ -242,7 +242,6 @@ export function updateHeaderUI(user) {
       <span class="user-name">${user.name}</span>
       ${isAdmin ? '<span class="user-role">Lojista</span>' : ''}
     </div>
-    <button class="logout-btn" id="userLogoutBtn">Sair</button>
   `;
   openAdminBtn.style.display = isAdmin ? '' : 'none';
   cartBtn.style.display = '';
