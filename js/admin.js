@@ -86,6 +86,12 @@ export function showAuthView() {
   document.getElementById('authView').style.display = '';
   document.getElementById('publicView').style.display = 'none';
   document.getElementById('adminView').style.display = 'none';
+  document.getElementById('authLoginForm').style.display = '';
+  document.getElementById('authRegisterForm').style.display = 'none';
+  document.getElementById('authForgotForm').style.display = 'none';
+  document.getElementById('authResetForm').style.display = 'none';
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('registerError').classList.remove('show');
 }
 
 export function showPublicView() {

@@ -1,8 +1,9 @@
 import { WHATSAPP_NUMBER } from './config.js';
 import { fmt, uid, showToast } from './utils.js';
 import {
-  loadUsers, saveUsers, seedAdmin, registerUser, loginUser,
-  logout, restoreSession, getCurrentUser, isCurrentUserAdmin
+  registerUser, loginUser, logout, restoreSession, getCurrentUser,
+  isCurrentUserAdmin, requestPasswordReset, completePasswordReset,
+  isRecoverySession
 } from './auth.js';
 import {
   loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments
@@ -248,10 +249,14 @@ function navigateTo(view) {
 async function init() {
   const data = await loadData();
   Object.assign(state, data);
-  await loadUsers();
-  await seedAdmin();
 
-  if (restoreSession()) {
+  if (isRecoverySession()) {
+    document.getElementById('authView').style.display = '';
+    document.getElementById('authLoginForm').style.display = 'none';
+    document.getElementById('authRegisterForm').style.display = 'none';
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authResetForm').style.display = '';
+  } else if (await restoreSession()) {
     navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
   } else {
     navigateTo('auth');
@@ -360,21 +365,38 @@ function setupEventListeners() {
   document.getElementById('showRegister').onclick = () => {
     document.getElementById('authLoginForm').style.display = 'none';
     document.getElementById('authRegisterForm').style.display = '';
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authResetForm').style.display = 'none';
     document.getElementById('loginError').classList.remove('show');
     document.getElementById('registerError').classList.remove('show');
   };
   document.getElementById('showLogin').onclick = () => {
     document.getElementById('authRegisterForm').style.display = 'none';
     document.getElementById('authLoginForm').style.display = '';
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authResetForm').style.display = 'none';
     document.getElementById('loginError').classList.remove('show');
     document.getElementById('registerError').classList.remove('show');
   };
+  document.getElementById('showForgotPassword').onclick = () => {
+    document.getElementById('authLoginForm').style.display = 'none';
+    document.getElementById('authRegisterForm').style.display = 'none';
+    document.getElementById('authForgotForm').style.display = '';
+    document.getElementById('authResetForm').style.display = 'none';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('forgotError').classList.remove('show');
+  };
+  document.getElementById('showLoginFromForgot').onclick = () => {
+    document.getElementById('authForgotForm').style.display = 'none';
+    document.getElementById('authLoginForm').style.display = '';
+    document.getElementById('forgotError').classList.remove('show');
+  };
 
   document.getElementById('authLoginBtn').onclick = async () => {
-    const phone = document.getElementById('authLoginPhone').value.trim();
+    const email = document.getElementById('authLoginEmail').value.trim();
     const pass = document.getElementById('authLoginPass').value;
-    if (!phone || !pass) { showAuthError('loginError', 'Preencha todos os campos'); return; }
-    const result = await loginUser(phone, pass);
+    if (!email || !pass) { showAuthError('loginError', 'Preencha todos os campos'); return; }
+    const result = await loginUser(email, pass);
     if (result.error) { showAuthError('loginError', result.error); return; }
     navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
     render();
@@ -385,20 +407,51 @@ function setupEventListeners() {
 
   document.getElementById('authRegBtn').onclick = async () => {
     const name = document.getElementById('authRegName').value.trim();
+    const email = document.getElementById('authRegEmail').value.trim();
     const phone = document.getElementById('authRegPhone').value.trim();
     const pass = document.getElementById('authRegPass').value;
     const pass2 = document.getElementById('authRegPass2').value;
-    if (!name || !phone || !pass || !pass2) { showAuthError('registerError', 'Preencha todos os campos'); return; }
+    if (!name || !email || !phone || !pass || !pass2) { showAuthError('registerError', 'Preencha todos os campos'); return; }
     if (pass !== pass2) { showAuthError('registerError', 'As senhas não coincidem'); return; }
-    const result = await registerUser(name, phone, pass);
+    const result = await registerUser(name, email, phone, pass);
     if (result.error) { showAuthError('registerError', result.error); return; }
-    navigateTo('public');
-    render();
-    showToast("Conta criada com sucesso!");
+    if (result.confirmEmail) {
+      showAuthError('registerError', 'Conta criada! Verifique o seu email para confirmar o registo.');
+      document.getElementById('registerError').style.background = 'rgba(28,110,110,0.1)';
+      document.getElementById('registerError').style.color = 'var(--teal)';
+    } else {
+      navigateTo('public');
+      render();
+      showToast("Conta criada com sucesso!");
+    }
   };
   document.getElementById('authRegPass2').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('authRegBtn').click();
   });
+
+  document.getElementById('authForgotBtn').onclick = async () => {
+    const email = document.getElementById('authForgotEmail').value.trim();
+    if (!email) { showAuthError('forgotError', 'Insira o seu email'); return; }
+    const result = await requestPasswordReset(email);
+    if (result.error) { showAuthError('forgotError', result.error); return; }
+    showAuthError('forgotError', 'Email enviado! Verifique a sua caixa de entrada.');
+    document.getElementById('forgotError').style.background = 'rgba(28,110,110,0.1)';
+    document.getElementById('forgotError').style.color = 'var(--teal)';
+  };
+
+  document.getElementById('authResetBtn').onclick = async () => {
+    const pass = document.getElementById('authResetPass').value;
+    const pass2 = document.getElementById('authResetPass2').value;
+    if (!pass || !pass2) { showAuthError('resetError', 'Preencha todos os campos'); return; }
+    if (pass !== pass2) { showAuthError('resetError', 'As senhas não coincidem'); return; }
+    if (pass.length < 6) { showAuthError('resetError', 'Palavra-passe deve ter pelo menos 6 caracteres'); return; }
+    const result = await completePasswordReset(pass);
+    if (result.error) { showAuthError('resetError', result.error); return; }
+    showToast("Senha redefinida com sucesso!");
+    window.location.hash = '';
+    navigateTo('public');
+    render();
+  };
 
   document.getElementById('openAdmin').onclick = () => {
     if (!getCurrentUser() || !isCurrentUserAdmin()) { showToast("Acesso não autorizado"); return; }

@@ -58,21 +58,24 @@
         <span class="brand-suffix" style="font-family:'Fraunces',serif;font-weight:600;">Pemba</span>
         <div class="tagline">O melhor das lojas de Pemba, escolhido a dedo para si.</div>
       </div>
+
+      <!-- Login -->
       <div class="auth-form" id="authLoginForm">
         <div class="auth-error" id="loginError"></div>
         <div class="field">
-          <label>Telefone / WhatsApp</label>
-          <input type="tel" id="authLoginPhone" placeholder="84xxxxxxx" maxlength="12">
-          <div class="auth-phone-hint">Ex: 841234567</div>
+          <label>Email</label>
+          <input type="email" id="authLoginEmail" placeholder="exemplo@email.com">
         </div>
         <div class="field">
           <label>Palavra-passe</label>
           <input type="password" id="authLoginPass" placeholder="A sua palavra-passe">
         </div>
         <button class="btn-primary" id="authLoginBtn">Entrar</button>
+        <div class="auth-toggle"><a id="showForgotPassword">Esqueceu a senha?</a></div>
         <div class="auth-toggle">Não tem conta? <a id="showRegister">Criar conta</a></div>
       </div>
 
+      <!-- Registo -->
       <div class="auth-form" id="authRegisterForm" style="display:none;">
         <div class="auth-error" id="registerError"></div>
         <div class="field">
@@ -80,9 +83,12 @@
           <input type="text" id="authRegName" placeholder="O seu nome">
         </div>
         <div class="field">
+          <label>Email</label>
+          <input type="email" id="authRegEmail" placeholder="exemplo@email.com">
+        </div>
+        <div class="field">
           <label>Telefone / WhatsApp</label>
           <input type="tel" id="authRegPhone" placeholder="84xxxxxxx" maxlength="12">
-          <div class="auth-phone-hint">Vai usar este telefone para entrar</div>
         </div>
         <div class="field">
           <label>Palavra-passe</label>
@@ -94,6 +100,33 @@
         </div>
         <button class="btn-primary" id="authRegBtn">Criar conta</button>
         <div class="auth-toggle">Já tem conta? <a id="showLogin">Entrar</a></div>
+      </div>
+
+      <!-- Esqueci a senha -->
+      <div class="auth-form" id="authForgotForm" style="display:none;">
+        <div class="auth-error" id="forgotError"></div>
+        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Insira o seu email para receber um link de redefinição de senha.</p>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="authForgotEmail" placeholder="exemplo@email.com">
+        </div>
+        <button class="btn-primary" id="authForgotBtn">Enviar link de redefinição</button>
+        <div class="auth-toggle"><a id="showLoginFromForgot">← Voltar ao login</a></div>
+      </div>
+
+      <!-- Redefinir senha -->
+      <div class="auth-form" id="authResetForm" style="display:none;">
+        <div class="auth-error" id="resetError"></div>
+        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Insira a sua nova palavra-passe.</p>
+        <div class="field">
+          <label>Nova palavra-passe</label>
+          <input type="password" id="authResetPass" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="field">
+          <label>Confirmar nova palavra-passe</label>
+          <input type="password" id="authResetPass2" placeholder="Repita a palavra-passe">
+        </div>
+        <button class="btn-primary" id="authResetBtn">Redefinir senha</button>
       </div>
     </div>
   </div>
