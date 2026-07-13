@@ -134,17 +134,19 @@
 </div>
 
 <div id="adminView" style="display:none;">
-  <div style="max-width:800px;margin:24px auto;padding:0 28px;">
-    <button class="btn-secondary" id="adLogout" style="width:auto;padding:8px 16px;margin-bottom:20px;">← Sair do painel</button>
-    <div id="adminPanel">
-      <div class="tabs">
-        <button class="tab active" data-tab="dashboard">Painel</button>
-        <button class="tab" data-tab="orders">Encomendas</button>
-        <button class="tab" data-tab="products">Produtos</button>
-        <button class="tab" data-tab="clients">Clientes</button>
-        <button class="tab" data-tab="requests">Pedidos personalizados</button>
-        <button class="tab" data-tab="settings">Configurações</button>
-      </div>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <button class="btn-secondary" id="adLogout" style="width:100%;padding:8px 12px;margin-bottom:16px;font-size:0.8rem;">← Sair</button>
+      <nav class="admin-nav">
+        <button class="admin-nav-btn active" data-tab="dashboard">Painel</button>
+        <button class="admin-nav-btn" data-tab="orders">Encomendas</button>
+        <button class="admin-nav-btn" data-tab="products">Produtos</button>
+        <button class="admin-nav-btn" data-tab="clients">Clientes</button>
+        <button class="admin-nav-btn" data-tab="requests">Pedidos personalizados</button>
+        <button class="admin-nav-btn" data-tab="settings">Configurações</button>
+      </nav>
+    </aside>
+    <main class="admin-content">
 
       <!-- Dashboard -->
       <div id="tabDashboard">
@@ -232,10 +234,10 @@
           <div class="pay-row">
             <input id="newPayment" placeholder="Ex: M-Pesa, e-Mola, BIM...">
             <button id="addPayment">Adicionar</button>
-          </div>
-        </div>
       </div>
-    </div>
+    </main>
+  </div>
+</div>
   </div>
 </div>
 

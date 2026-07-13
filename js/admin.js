@@ -207,7 +207,6 @@ export function showAdminView() {
   document.getElementById('authView').style.display = 'none';
   document.getElementById('publicView').style.display = '';
   document.getElementById('adminView').style.display = '';
-  document.getElementById('adminPanel').style.display = 'block';
 }
 
 export function updateHeaderUI(user) {

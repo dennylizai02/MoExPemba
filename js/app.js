@@ -496,9 +496,9 @@ function setupEventListeners() {
     }
   });
 
-  document.querySelectorAll('.tab').forEach(t => {
+  document.querySelectorAll('.admin-nav-btn').forEach(t => {
     t.onclick = () => {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.admin-nav-btn').forEach(x => x.classList.remove('active'));
       t.classList.add('active');
       document.getElementById('tabDashboard').style.display = t.dataset.tab === 'dashboard' ? 'block' : 'none';
       document.getElementById('tabOrders').style.display = t.dataset.tab === 'orders' ? 'block' : 'none';
