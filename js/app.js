@@ -500,12 +500,20 @@ function setupEventListeners() {
     t.onclick = () => {
       document.querySelectorAll('.admin-nav-btn').forEach(x => x.classList.remove('active'));
       t.classList.add('active');
-      document.getElementById('tabDashboard').style.display = t.dataset.tab === 'dashboard' ? 'block' : 'none';
-      document.getElementById('tabOrders').style.display = t.dataset.tab === 'orders' ? 'block' : 'none';
-      document.getElementById('tabProducts').style.display = t.dataset.tab === 'products' ? 'block' : 'none';
-      document.getElementById('tabClients').style.display = t.dataset.tab === 'clients' ? 'block' : 'none';
-      document.getElementById('tabRequests').style.display = t.dataset.tab === 'requests' ? 'block' : 'none';
-      document.getElementById('tabSettings').style.display = t.dataset.tab === 'settings' ? 'block' : 'none';
+      const tab = t.dataset.tab;
+      if (tab === 'store') {
+        document.getElementById('publicView').style.display = '';
+        document.getElementById('adminView').querySelector('.admin-content').style.display = 'none';
+      } else {
+        document.getElementById('publicView').style.display = 'none';
+        document.getElementById('adminView').querySelector('.admin-content').style.display = '';
+        document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+        document.getElementById('tabOrders').style.display = tab === 'orders' ? 'block' : 'none';
+        document.getElementById('tabProducts').style.display = tab === 'products' ? 'block' : 'none';
+        document.getElementById('tabClients').style.display = tab === 'clients' ? 'block' : 'none';
+        document.getElementById('tabRequests').style.display = tab === 'requests' ? 'block' : 'none';
+        document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
+      }
     };
   });
 

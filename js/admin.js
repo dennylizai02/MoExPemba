@@ -205,8 +205,18 @@ export function showPublicView() {
 
 export function showAdminView() {
   document.getElementById('authView').style.display = 'none';
-  document.getElementById('publicView').style.display = '';
+  document.getElementById('publicView').style.display = 'none';
   document.getElementById('adminView').style.display = '';
+  const adminContent = document.getElementById('adminView').querySelector('.admin-content');
+  if (adminContent) adminContent.style.display = '';
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  const dashboardBtn = document.querySelector('[data-tab="dashboard"]');
+  if (dashboardBtn) dashboardBtn.classList.add('active');
+  document.getElementById('tabDashboard').style.display = 'block';
+  ['tabOrders', 'tabProducts', 'tabClients', 'tabRequests', 'tabSettings'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 }
 
 export function updateHeaderUI(user) {

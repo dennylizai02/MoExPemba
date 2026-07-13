@@ -431,6 +431,11 @@ header.site{
   font-weight:700;
   background:rgba(28,110,110,0.06);
 }
+.admin-nav-divider{
+  height:1px;
+  background:var(--line);
+  margin:8px 16px;
+}
 .admin-content{
   flex:1;
   padding:24px 28px;
