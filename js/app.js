@@ -251,6 +251,7 @@ async function init() {
   Object.assign(state, data);
 
   if (isRecoverySession()) {
+    window.history.replaceState(null, '', window.location.pathname);
     document.getElementById('authView').style.display = '';
     document.getElementById('authLoginForm').style.display = 'none';
     document.getElementById('authRegisterForm').style.display = 'none';
