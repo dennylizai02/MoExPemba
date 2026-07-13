@@ -1,4 +1,11 @@
 import { fmt } from './utils.js';
+import { getCurrentUser } from './auth.js';
+import { cartStorage } from './storage.js';
+
+function saveCart(cart) {
+  const user = getCurrentUser();
+  if (user) cartStorage.save(user.id, cart);
+}
 
 export function renderCart(cart, products) {
   const wrap = document.getElementById('cartItems');
@@ -34,13 +41,14 @@ export function renderCart(cart, products) {
     wrap.appendChild(row);
   });
   document.getElementById('cartTotal').textContent = fmt(total);
-  wrap.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { cart.find(l => l.key === b.dataset.inc).qty++; renderCart(cart, products); });
+  wrap.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { cart.find(l => l.key === b.dataset.inc).qty++; renderCart(cart, products); saveCart(cart); });
   wrap.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
     const l = cart.find(l => l.key === b.dataset.dec);
     l.qty--; if (l.qty <= 0) cart.splice(cart.indexOf(l), 1);
     renderCart(cart, products);
+    saveCart(cart);
   });
-  wrap.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { cart.splice(cart.findIndex(l => l.key === b.dataset.rm), 1); renderCart(cart, products); });
+  wrap.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { cart.splice(cart.findIndex(l => l.key === b.dataset.rm), 1); renderCart(cart, products); saveCart(cart); });
 }
 
 export function cartTotalValue(cart, products) {

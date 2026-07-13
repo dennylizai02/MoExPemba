@@ -8,6 +8,7 @@ import {
 import {
   loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments
 } from './data.js';
+import { cartStorage } from './storage.js';
 import { renderProductCards, renderProductModal, renderReviews, matchesSearch } from './products.js';
 import { renderCart, cartTotalValue, openCartDrawer, closeCart, closeAllModals } from './cart.js';
 import {
@@ -103,6 +104,8 @@ function renderGrid() {
 
 function renderCartState() {
   renderCart(state.cart, state.products);
+  const user = getCurrentUser();
+  if (user) cartStorage.save(user.id, state.cart);
 }
 
 function handleAddToCart(id, size, color) {
@@ -186,7 +189,9 @@ function buildOrderSummaryText() {
 }
 
 function finishCheckout() {
+  const user = getCurrentUser();
   state.cart = [];
+  if (user) cartStorage.clear(user.id);
   renderCartState();
   document.getElementById('checkoutModal').classList.remove('show');
   closeCart();
@@ -277,6 +282,8 @@ async function init() {
     document.getElementById('authForgotForm').style.display = 'none';
     document.getElementById('authResetForm').style.display = '';
   } else if (await restoreSession()) {
+    const user = getCurrentUser();
+    if (user) state.cart = await cartStorage.load(user.id);
     navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
   } else {
     navigateTo('auth');

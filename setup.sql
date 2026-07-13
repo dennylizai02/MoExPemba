@@ -53,3 +53,36 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 -- Primeiro: crie a conta normalmente pela app
 -- Depois: execute este UPDATE para tornar o utilizador admin
 -- UPDATE profiles SET role = 'admin' WHERE phone = '840000000';
+
+-- =============================================================
+-- 5. Tabela carts — carrinho persistente por utilizador
+-- =============================================================
+
+CREATE TABLE IF NOT EXISTS carts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  product_id TEXT NOT NULL,
+  size TEXT,
+  color TEXT,
+  qty INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id, product_id, size, color)
+);
+
+ALTER TABLE carts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own cart"
+  ON carts FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own cart"
+  ON carts FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own cart"
+  ON carts FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own cart"
+  ON carts FOR DELETE
+  USING (auth.uid() = user_id);
