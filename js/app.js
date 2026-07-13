@@ -270,28 +270,36 @@ function navigateTo(view) {
 }
 
 async function init() {
-  const data = await loadData();
-  Object.assign(state, data);
-  loadClients().then(clients => { state.clients = clients; });
+  try {
+    const data = await loadData();
+    Object.assign(state, data);
+    loadClients().then(clients => { state.clients = clients; });
 
-  if (isRecoverySession()) {
-    window.history.replaceState(null, '', window.location.pathname);
-    document.getElementById('authView').style.display = '';
-    document.getElementById('authLoginForm').style.display = 'none';
-    document.getElementById('authRegisterForm').style.display = 'none';
-    document.getElementById('authForgotForm').style.display = 'none';
-    document.getElementById('authResetForm').style.display = '';
-  } else if (await restoreSession()) {
-    const user = getCurrentUser();
-    if (user) state.cart = await cartStorage.load(user.id);
-    navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
-  } else {
+    if (isRecoverySession()) {
+      window.history.replaceState(null, '', window.location.pathname);
+      document.getElementById('authView').style.display = '';
+      document.getElementById('authLoginForm').style.display = 'none';
+      document.getElementById('authRegisterForm').style.display = 'none';
+      document.getElementById('authForgotForm').style.display = 'none';
+      document.getElementById('authResetForm').style.display = '';
+    } else if (await restoreSession()) {
+      const user = getCurrentUser();
+      if (user) {
+        try { state.cart = await cartStorage.load(user.id); } catch (e) { console.error('Cart load error:', e); }
+      }
+      navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
+    } else {
+      navigateTo('auth');
+    }
+    render();
+    setupEventListeners();
+  } catch (e) {
+    console.error('Init error:', e);
     navigateTo('auth');
+  } finally {
+    const loader = document.getElementById('appLoader');
+    if (loader) { loader.classList.add('hide'); setTimeout(() => loader.remove(), 400); }
   }
-  render();
-  setupEventListeners();
-  const loader = document.getElementById('appLoader');
-  if (loader) { loader.classList.add('hide'); setTimeout(() => loader.remove(), 400); }
 }
 
 function setupEventListeners() {

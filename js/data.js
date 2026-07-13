@@ -12,12 +12,12 @@ export async function loadData() {
   };
 
   const keys = [
-    { key: 'products', admin: true },
-    { key: 'orders', admin: true },
-    { key: 'requests', admin: true },
-    { key: 'favorites', admin: false },
-    { key: 'zones', admin: true },
-    { key: 'payments', admin: true }
+    { key: 'products', admin: true, stateKey: 'products' },
+    { key: 'orders', admin: true, stateKey: 'orders' },
+    { key: 'requests', admin: true, stateKey: 'customRequests' },
+    { key: 'favorites', admin: false, stateKey: 'favorites' },
+    { key: 'zones', admin: true, stateKey: 'zones' },
+    { key: 'payments', admin: true, stateKey: 'payments' }
   ];
 
   const results = await Promise.all(
@@ -27,7 +27,7 @@ export async function loadData() {
   const state = {};
   keys.forEach((k, i) => {
     const raw = results[i];
-    state[k.key] = raw ? JSON.parse(raw.value) : defaults[k.key];
+    state[k.stateKey] = raw ? JSON.parse(raw.value) : defaults[k.stateKey];
   });
 
   if (!results[0]) await storage.set('products', JSON.stringify(state.products), true);
