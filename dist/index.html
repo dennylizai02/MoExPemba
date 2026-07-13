@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
-<script>window.__recoveryHash = window.location.hash.includes('type=recovery') ? window.location.hash : '';</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -28,6 +27,29 @@
   </div>
 </header>
 
+<div id="publicView" style="display:none;">
+
+<section class="hero">
+  <div class="eyebrow">Visto nas lojas · Vendido aqui</div>
+  <h1>O melhor das lojas de Pemba, escolhido a dedo para si</h1>
+  <p>Percorremos as lojas da cidade para trazer-lhe os artigos mais bonitos e os melhores preços. Veja, escolha, encomende — nós tratamos do resto.</p>
+  <svg class="wave" viewBox="0 0 1000 60" preserveAspectRatio="none">
+    <path d="M0,30 C150,60 350,0 500,30 C650,60 850,0 1000,30" fill="none" stroke="#1C6E6E" stroke-width="2" opacity="0.5"/>
+    <path d="M0,42 C150,70 350,12 500,42 C650,70 850,12 1000,42" fill="none" stroke="#E8A33D" stroke-width="2" opacity="0.6"/>
+  </svg>
+</section>
+
+<div class="filters">
+  <input class="search" id="searchBox" placeholder="Procurar produtos...">
+  <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+</div>
+
+<div class="featured-strip" id="featuredStrip"></div>
+<div class="grid" id="productGrid"></div>
+<div class="empty-state" id="emptyState" style="display:none;">Ainda não há produtos aqui. Volte em breve.</div>
+
+</div>
+
 <div id="authView" style="display:none;">
   <div class="auth-view">
     <div class="auth-card">
@@ -36,24 +58,25 @@
         <span class="brand-suffix" style="font-family:'Fraunces',serif;font-weight:600;">Pemba</span>
         <div class="tagline">O melhor das lojas de Pemba, escolhido a dedo para si.</div>
       </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth-tab="login">Entrar</button>
+        <button class="auth-tab" data-auth-tab="register">Criar conta</button>
+      </div>
 
-      <!-- Login -->
       <div class="auth-form" id="authLoginForm">
         <div class="auth-error" id="loginError"></div>
         <div class="field">
-          <label>Email ou Telefone</label>
-          <input type="text" id="authLoginEmail" placeholder="exemplo@email.com ou 84xxxxxxx">
+          <label>Telefone / WhatsApp</label>
+          <input type="tel" id="authLoginPhone" placeholder="84xxxxxxx" maxlength="12">
+          <div class="auth-phone-hint">Ex: 841234567</div>
         </div>
         <div class="field">
           <label>Palavra-passe</label>
           <input type="password" id="authLoginPass" placeholder="A sua palavra-passe">
         </div>
         <button class="btn-primary" id="authLoginBtn">Entrar</button>
-        <div class="auth-toggle"><a id="showForgotPassword">Esqueceu a senha?</a></div>
-        <div class="auth-toggle">Não tem conta? <a id="showRegister">Criar conta</a></div>
       </div>
 
-      <!-- Registo -->
       <div class="auth-form" id="authRegisterForm" style="display:none;">
         <div class="auth-error" id="registerError"></div>
         <div class="field">
@@ -61,12 +84,9 @@
           <input type="text" id="authRegName" placeholder="O seu nome">
         </div>
         <div class="field">
-          <label>Email</label>
-          <input type="email" id="authRegEmail" placeholder="exemplo@email.com">
-        </div>
-        <div class="field">
           <label>Telefone / WhatsApp</label>
           <input type="tel" id="authRegPhone" placeholder="84xxxxxxx" maxlength="12">
+          <div class="auth-phone-hint">Vai usar este telefone para entrar</div>
         </div>
         <div class="field">
           <label>Palavra-passe</label>
@@ -77,100 +97,22 @@
           <input type="password" id="authRegPass2" placeholder="Repita a palavra-passe">
         </div>
         <button class="btn-primary" id="authRegBtn">Criar conta</button>
-        <div class="auth-toggle">Já tem conta? <a id="showLogin">Entrar</a></div>
-      </div>
-
-      <!-- Esqueci a senha -->
-      <div class="auth-form" id="authForgotForm" style="display:none;">
-        <div class="auth-error" id="forgotError"></div>
-        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Insira o seu email ou telefone para receber um link de redefinição de senha.</p>
-        <div class="field">
-          <label>Email ou Telefone</label>
-          <input type="text" id="authForgotEmail" placeholder="exemplo@email.com ou 84xxxxxxx">
-        </div>
-        <button class="btn-primary" id="authForgotBtn">Enviar link de redefinição</button>
-        <div class="auth-toggle"><a id="showLoginFromForgot">← Voltar ao login</a></div>
-      </div>
-
-      <!-- Redefinir senha -->
-      <div class="auth-form" id="authResetForm" style="display:none;">
-        <div class="auth-error" id="resetError"></div>
-        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Insira a sua nova palavra-passe.</p>
-        <div class="field">
-          <label>Nova palavra-passe</label>
-          <input type="password" id="authResetPass" placeholder="Mínimo 6 caracteres">
-        </div>
-        <div class="field">
-          <label>Confirmar nova palavra-passe</label>
-          <input type="password" id="authResetPass2" placeholder="Repita a palavra-passe">
-        </div>
-        <button class="btn-primary" id="authResetBtn">Redefinir senha</button>
       </div>
     </div>
   </div>
 </div>
 
 <div id="adminView" style="display:none;">
-  <div class="admin-layout">
-    <aside class="admin-sidebar">
-      <nav class="admin-nav">
-        <button class="admin-nav-btn" data-tab="store">Loja</button>
-        <button class="admin-nav-btn active" data-tab="dashboard">Painel</button>
-        <button class="admin-nav-btn" data-tab="orders">Encomendas</button>
-        <button class="admin-nav-btn" data-tab="products">Produtos</button>
-        <button class="admin-nav-btn" data-tab="clients">Clientes</button>
-        <button class="admin-nav-btn" data-tab="requests">Pedidos</button>
-        <button class="admin-nav-btn" data-tab="settings">Configurações</button>
-      </nav>
-      <button class="admin-nav-btn admin-logout-btn" id="adLogout">Sair</button>
-    </aside>
-    <main class="admin-content">
-
-      <div id="publicView" style="display:none;">
-        <section class="hero">
-          <div class="eyebrow">Visto nas lojas · Vendido aqui</div>
-          <h1>O melhor das lojas de Pemba, escolhido a dedo para si</h1>
-          <p>Percorremos as lojas da cidade para trazer-lhe os artigos mais bonitos e os melhores preços. Veja, escolha, encomende — nós tratamos do resto.</p>
-          <svg class="wave" viewBox="0 0 1000 60" preserveAspectRatio="none">
-            <path d="M0,30 C150,60 350,0 500,30 C650,60 850,0 1000,30" fill="none" stroke="#1C6E6E" stroke-width="2" opacity="0.5"/>
-            <path d="M0,42 C150,70 350,12 500,42 C650,70 850,12 1000,42" fill="none" stroke="#E8A33D" stroke-width="2" opacity="0.6"/>
-          </svg>
-        </section>
-        <div class="filters">
-          <input class="search" id="searchBox" placeholder="Procurar produtos...">
-          <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
-        </div>
-        <div class="featured-strip" id="featuredStrip"></div>
-        <div class="grid" id="productGrid"></div>
-        <div class="empty-state" id="emptyState" style="display:none;">Ainda não há produtos aqui. Volte em breve.</div>
+  <div style="max-width:800px;margin:24px auto;padding:0 28px;">
+    <button class="btn-secondary" id="adLogout" style="width:auto;padding:8px 16px;margin-bottom:20px;">← Sair do painel</button>
+    <div id="adminPanel">
+      <div class="tabs">
+        <button class="tab active" data-tab="products">Produtos</button>
+        <button class="tab" data-tab="orders">Encomendas</button>
+        <button class="tab" data-tab="requests">Pedidos personalizados</button>
+        <button class="tab" data-tab="settings">Configurações</button>
       </div>
-
-      <!-- Dashboard -->
-      <div id="tabDashboard">
-        <div class="dashboard-stats" id="dashboardStats"></div>
-        <div class="admin-section">
-          <h3>Encomendas recentes</h3>
-          <div id="dashboardRecentOrders"></div>
-        </div>
-      </div>
-
-      <!-- Encomendas -->
-      <div id="tabOrders" style="display:none;">
-        <div class="admin-section">
-          <h3>Encomendas</h3>
-          <div id="orderFilters" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-            <button class="chip active" data-status-filter="all">Todas</button>
-            <button class="chip" data-status-filter="novo">Novas</button>
-            <button class="chip" data-status-filter="em curso">Em curso</button>
-            <button class="chip" data-status-filter="entregue">Entregues</button>
-            <button class="chip" data-status-filter="cancelado">Canceladas</button>
-          </div>
-          <div id="adminOrderList"></div>
-        </div>
-      </div>
-
-      <!-- Produtos -->
-      <div id="tabProducts" style="display:none;">
+      <div id="tabProducts">
         <div class="admin-section">
           <h3>Adicionar / Editar produto</h3>
           <input type="hidden" id="editingId" value="">
@@ -198,24 +140,18 @@
           <div id="adminProductList"></div>
         </div>
       </div>
-
-      <!-- Clientes -->
-      <div id="tabClients" style="display:none;">
+      <div id="tabOrders" style="display:none;">
         <div class="admin-section">
-          <h3>Clientes registados</h3>
-          <div id="adminClientList"></div>
+          <h3>Encomendas</h3>
+          <div id="adminOrderList"></div>
         </div>
       </div>
-
-      <!-- Pedidos personalizados -->
       <div id="tabRequests" style="display:none;">
         <div class="admin-section">
           <h3>Pedidos personalizados</h3>
           <div id="adminRequestList"></div>
         </div>
       </div>
-
-      <!-- Configurações -->
       <div id="tabSettings" style="display:none;">
         <div class="admin-section">
           <h3>Zonas de entrega</h3>
@@ -231,10 +167,10 @@
           <div class="pay-row">
             <input id="newPayment" placeholder="Ex: M-Pesa, e-Mola, BIM...">
             <button id="addPayment">Adicionar</button>
+          </div>
+        </div>
       </div>
-    </main>
-  </div>
-</div>
+    </div>
   </div>
 </div>
 
