@@ -107,6 +107,7 @@ function renderCartState() {
 
 function handleAddToCart(id, size, color) {
   const p = state.products.find(pr => pr.id === id);
+  if (!p) return;
   if ((p.sizes && p.sizes.length) || (p.colors && p.colors.length)) {
     openProductModalHandler(id);
     return;
@@ -482,7 +483,6 @@ function setupEventListeners() {
 
   document.getElementById('adLogout').onclick = () => {
     document.getElementById('adminView').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
     logout();
     navigateTo('auth');
     render();
