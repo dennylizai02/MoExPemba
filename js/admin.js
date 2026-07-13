@@ -244,7 +244,7 @@ export function updateHeaderUI(user) {
     </div>
   `;
   openAdminBtn.style.display = isAdmin ? '' : 'none';
-  cartBtn.style.display = '';
+  cartBtn.style.display = isAdmin ? 'none' : '';
 }
 
 export function showAuthError(id, msg) {
