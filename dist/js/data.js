@@ -2,39 +2,37 @@ import { uid } from './utils.js';
 import { storage } from './storage.js';
 
 export async function loadData() {
-  const state = { products: [], orders: [], customRequests: [], favorites: [], zones: [], payments: [] };
+  const defaults = {
+    products: getDefaultProducts(),
+    orders: [],
+    customRequests: [],
+    favorites: [],
+    zones: ["Cariaco", "Alto Gingone", "Cimento"],
+    payments: ["M-Pesa", "e-Mola", "BIM"]
+  };
 
-  try {
-    const p = await storage.get('products', true);
-    state.products = p ? JSON.parse(p.value) : getDefaultProducts();
-  } catch (e) { state.products = getDefaultProducts(); await storage.set('products', JSON.stringify(state.products), true); }
+  const keys = [
+    { key: 'products', admin: true },
+    { key: 'orders', admin: true },
+    { key: 'requests', admin: true },
+    { key: 'favorites', admin: false },
+    { key: 'zones', admin: true },
+    { key: 'payments', admin: true }
+  ];
 
-  try {
-    const o = await storage.get('orders', true);
-    state.orders = o ? JSON.parse(o.value) : [];
-  } catch (e) { state.orders = []; }
+  const results = await Promise.all(
+    keys.map(k => storage.get(k.key, k.admin).catch(() => null))
+  );
 
-  try {
-    const r = await storage.get('requests', true);
-    state.customRequests = r ? JSON.parse(r.value) : [];
-  } catch (e) { state.customRequests = []; }
+  const state = {};
+  keys.forEach((k, i) => {
+    const raw = results[i];
+    state[k.key] = raw ? JSON.parse(raw.value) : defaults[k.key];
+  });
 
-  try {
-    const f = await storage.get('favorites', false);
-    state.favorites = f ? JSON.parse(f.value) : [];
-  } catch (e) { state.favorites = []; }
-
-  try {
-    const z = await storage.get('zones', true);
-    state.zones = z ? JSON.parse(z.value) : ["Cariaco", "Alto Gingone", "Cimento"];
-    if (!z) await storage.set('zones', JSON.stringify(state.zones), true);
-  } catch (e) { state.zones = ["Cariaco", "Alto Gingone", "Cimento"]; }
-
-  try {
-    const pay = await storage.get('payments', true);
-    state.payments = pay ? JSON.parse(pay.value) : ["M-Pesa", "e-Mola", "BIM"];
-    if (!pay) await storage.set('payments', JSON.stringify(state.payments), true);
-  } catch (e) { state.payments = ["M-Pesa", "e-Mola", "BIM"]; }
+  if (!results[0]) await storage.set('products', JSON.stringify(state.products), true);
+  if (!results[4]) await storage.set('zones', JSON.stringify(state.zones), true);
+  if (!results[5]) await storage.set('payments', JSON.stringify(state.payments), true);
 
   return state;
 }

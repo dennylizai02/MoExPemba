@@ -272,7 +272,7 @@ function navigateTo(view) {
 async function init() {
   const data = await loadData();
   Object.assign(state, data);
-  await loadClients();
+  loadClients().then(clients => { state.clients = clients; });
 
   if (isRecoverySession()) {
     window.history.replaceState(null, '', window.location.pathname);
