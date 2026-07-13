@@ -270,6 +270,7 @@ function navigateTo(view) {
 }
 
 async function init() {
+  setupEventListeners();
   try {
     const data = await loadData();
     Object.assign(state, data);
@@ -292,7 +293,6 @@ async function init() {
       navigateTo('auth');
     }
     render();
-    setupEventListeners();
   } catch (e) {
     console.error('Init error:', e);
     navigateTo('auth');
