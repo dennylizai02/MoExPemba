@@ -95,6 +95,26 @@ function renderFeaturedStrip() {
   }
 }
 
+function applySorting(list) {
+  const sortVal = document.getElementById('sortBox').value;
+  if (!sortVal) return list;
+  const sorted = [...list];
+  switch (sortVal) {
+    case 'price-asc': sorted.sort((a, b) => a.price - b.price); break;
+    case 'price-desc': sorted.sort((a, b) => b.price - a.price); break;
+    case 'sold-desc': sorted.sort((a, b) => (b.sold || 0) - (a.sold || 0)); break;
+    case 'newest': sorted.sort((a, b) => (b.id > a.id ? 1 : -1)); break;
+  }
+  return sorted;
+}
+
+function updateResultCount(count) {
+  const el = document.getElementById('resultCount');
+  if (!el) return;
+  if (count === 0) { el.textContent = ''; return; }
+  el.textContent = count + ' produto' + (count !== 1 ? 's' : '') + ' encontrado' + (count !== 1 ? 's' : '');
+}
+
 function renderGrid() {
   const grid = document.getElementById('productGrid');
   const emptyState = document.getElementById('emptyState');
@@ -103,9 +123,11 @@ function renderGrid() {
   let list = state.products.filter(p =>
     (state.activeCategory === "Todos" || p.category === state.activeCategory) && matchesSearch(p, search)
   );
+  list = applySorting(list);
 
   if (list.length === 0) {
     grid.innerHTML = "";
+    updateResultCount(0);
     if (state.products.length === 0) {
       emptyState.style.display = 'block';
       emptyState.innerHTML = 'Ainda não há produtos aqui. Volte em breve.';
@@ -127,6 +149,7 @@ function renderGrid() {
   }
 
   emptyState.style.display = 'none';
+  updateResultCount(list.length);
   renderProductCards(list, grid, handleAddToCart, openProductModalHandler, handleToggleFavorite, state.favorites);
 }
 
@@ -467,10 +490,13 @@ function setupEventListeners() {
   };
 
   document.getElementById('ckWhats').onclick = async () => {
+    const btn = document.getElementById('ckWhats');
     const fields = getCheckoutFields();
     if (!fields) return;
     const { name, phone, addr, note } = fields;
+    btn.disabled = true; btn.textContent = 'A registar...';
     const saved = await handleRegisterOrder(name, phone, addr, note);
+    btn.disabled = false; btn.textContent = 'Enviar pedido por WhatsApp';
     if (!saved) return;
     const msg = `Olá! Gostaria de fazer uma encomenda:\n\n${buildOrderSummaryText()}\n\nTotal: ${fmt(cartTotalValue(state.cart, state.products))}\n\nNome: ${name}\nTelefone: ${phone}\nLocal: ${addr}${note ? '\nObs: ' + note : ''}`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -494,6 +520,8 @@ function setupEventListeners() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(renderGrid, 200);
   });
+
+  document.getElementById('sortBox').addEventListener('change', renderGrid);
 
   document.getElementById('reqClose').onclick = () => {
     document.getElementById('requestModal').classList.remove('show');

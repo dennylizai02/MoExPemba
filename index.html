@@ -148,8 +148,16 @@
         </section>
         <div class="filters">
           <input class="search" id="searchBox" placeholder="Procurar produtos..." aria-label="Procurar produtos">
+          <select id="sortBox" class="search" style="flex:0 1 180px;" aria-label="Ordenar produtos">
+            <option value="">Ordenar por...</option>
+            <option value="price-asc">Menor preço</option>
+            <option value="price-desc">Maior preço</option>
+            <option value="sold-desc">Mais vendidos</option>
+            <option value="newest">Mais recentes</option>
+          </select>
           <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
         </div>
+        <div id="resultCount" style="max-width:1000px;margin:0 auto;padding:0 28px 4px;font-size:0.82rem;color:rgba(18,48,46,0.55);"></div>
         <div class="featured-strip" id="featuredStrip"></div>
         <div class="grid" id="productGrid"></div>
         <div class="empty-state" id="emptyState" style="display:none;">Ainda não há produtos aqui. Volte em breve.</div>
