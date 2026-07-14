@@ -6,7 +6,6 @@ export async function loadData() {
     products: getDefaultProducts(),
     orders: [],
     customRequests: [],
-    favorites: [],
     zones: ["Cariaco", "Alto Gingone", "Cimento"],
     payments: ["M-Pesa", "e-Mola", "BIM"],
     suppliers: []
@@ -16,7 +15,6 @@ export async function loadData() {
     { key: 'products', admin: true, stateKey: 'products' },
     { key: 'orders', admin: true, stateKey: 'orders' },
     { key: 'requests', admin: true, stateKey: 'customRequests' },
-    { key: 'favorites', admin: false, stateKey: 'favorites' },
     { key: 'zones', admin: true, stateKey: 'zones' },
     { key: 'payments', admin: true, stateKey: 'payments' },
     { key: 'suppliers', admin: true, stateKey: 'suppliers' }
@@ -39,6 +37,17 @@ export async function loadData() {
   return state;
 }
 
+export async function loadFavorites(userId) {
+  if (!userId) return [];
+  try {
+    const key = 'favorites_' + userId;
+    const result = await storage.get(key, false);
+    return result ? JSON.parse(result.value) : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function saveProducts(products) {
   await storage.set('products', JSON.stringify(products), true);
 }
@@ -48,8 +57,9 @@ export async function saveOrders(orders) {
 export async function saveRequests(customRequests) {
   await storage.set('requests', JSON.stringify(customRequests), true);
 }
-export async function saveFavorites(favorites) {
-  await storage.set('favorites', JSON.stringify(favorites), false);
+export async function saveFavorites(userId, favorites) {
+  if (!userId) return;
+  await storage.set('favorites_' + userId, JSON.stringify(favorites), false);
 }
 export async function saveZones(zones) {
   await storage.set('zones', JSON.stringify(zones), true);
