@@ -143,7 +143,7 @@
           </svg>
         </section>
         <div class="filters">
-          <input class="search" id="searchBox" placeholder="Procurar produtos...">
+          <input class="search" id="searchBox" placeholder="Procurar produtos..." aria-label="Procurar produtos">
           <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
         </div>
         <div class="featured-strip" id="featuredStrip"></div>
@@ -270,7 +270,7 @@
 <div class="drawer" id="cartDrawer">
   <div class="drawer-head">
     <h3 class="display" style="margin:0;font-size:1.2rem;">O seu carrinho</h3>
-    <button id="closeCart">✕</button>
+    <button id="closeCart" aria-label="Fechar carrinho">✕</button>
   </div>
   <div class="drawer-items" id="cartItems"></div>
   <div class="drawer-foot">
@@ -282,7 +282,7 @@
 <!-- Product modal -->
 <div class="modal" id="productModal">
   <div class="modal-box wide">
-    <div class="modal-head"><h3 class="display" id="pmName" style="margin:0;"></h3><button id="pmClose">✕</button></div>
+    <div class="modal-head"><h3 class="display" id="pmName" style="margin:0;"></h3><button id="pmClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body" style="display:flex;gap:20px;flex-wrap:wrap;">
       <div style="flex:1 1 220px;">
         <img class="prod-modal-img" id="pmImg" style="border-radius:10px;">
@@ -333,7 +333,7 @@
 <!-- Checkout modal -->
 <div class="modal" id="checkoutModal">
   <div class="modal-box">
-    <div class="modal-head"><h3 class="display" style="margin:0;">Finalizar encomenda</h3><button id="ckClose">✕</button></div>
+    <div class="modal-head"><h3 class="display" style="margin:0;">Finalizar encomenda</h3><button id="ckClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Nome completo</label><input id="ckName" placeholder="O seu nome"></div>
       <div class="field"><label>Telefone / WhatsApp</label><input id="ckPhone" placeholder="84xxxxxxx"></div>
@@ -354,7 +354,7 @@
 <!-- Custom request modal -->
 <div class="modal" id="requestModal">
   <div class="modal-box">
-    <div class="modal-head"><h3 class="display" style="margin:0;">Descreva o que procura</h3><button id="reqClose">✕</button></div>
+    <div class="modal-head"><h3 class="display" style="margin:0;">Descreva o que procura</h3><button id="reqClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body">
       <p style="font-size:0.85rem;color:rgba(18,48,46,0.65);margin-top:0;">Não encontrou o produto? Descreva-o e entramos em contacto assim que o encontrarmos numa loja.</p>
       <div class="field"><label>O seu nome</label><input id="reqName"></div>
