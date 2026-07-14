@@ -2,9 +2,14 @@ import { fmt, esc } from './utils.js';
 import { getCurrentUser } from './auth.js';
 import { cartStorage } from './storage.js';
 
-function saveCart(cart) {
-  const user = getCurrentUser();
-  if (user) cartStorage.save(user.id, cart).catch(e => console.error('Cart save error:', e));
+let saveTimeout = null;
+
+function debouncedSaveCart(cart) {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    const user = getCurrentUser();
+    if (user) cartStorage.save(user.id, cart).catch(e => console.error('Cart save error:', e));
+  }, 300);
 }
 
 export function renderCart(cart, products) {
@@ -16,8 +21,12 @@ export function renderCart(cart, products) {
     document.getElementById('cartTotal').textContent = fmt(0);
     return;
   }
-  for (let i = cart.length - 1; i >= 0; i--) {
-    if (!products.find(pr => pr.id === cart[i].id)) cart.splice(i, 1);
+  const invalidKeys = cart.filter(l => !products.find(pr => pr.id === l.id)).map(l => l.key);
+  if (invalidKeys.length) {
+    for (const key of invalidKeys) {
+      const idx = cart.findIndex(l => l.key === key);
+      if (idx !== -1) cart.splice(idx, 1);
+    }
   }
   let total = 0;
   wrap.innerHTML = "";
@@ -44,14 +53,27 @@ export function renderCart(cart, products) {
     wrap.appendChild(row);
   });
   document.getElementById('cartTotal').textContent = fmt(total);
-  wrap.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { cart.find(l => l.key === b.dataset.inc).qty++; renderCart(cart, products); saveCart(cart); });
+  wrap.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => {
+    const l = cart.find(l => l.key === b.dataset.inc);
+    if (l) { l.qty++; renderCart(cart, products); debouncedSaveCart(cart); }
+  });
   wrap.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
     const l = cart.find(l => l.key === b.dataset.dec);
-    l.qty--; if (l.qty <= 0) cart.splice(cart.indexOf(l), 1);
+    if (!l) return;
+    l.qty--;
+    if (l.qty <= 0) {
+      const idx = cart.indexOf(l);
+      if (idx !== -1) cart.splice(idx, 1);
+    }
     renderCart(cart, products);
-    saveCart(cart);
+    debouncedSaveCart(cart);
   });
-  wrap.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { cart.splice(cart.findIndex(l => l.key === b.dataset.rm), 1); renderCart(cart, products); saveCart(cart); });
+  wrap.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    const idx = cart.findIndex(l => l.key === b.dataset.rm);
+    if (idx !== -1) cart.splice(idx, 1);
+    renderCart(cart, products);
+    debouncedSaveCart(cart);
+  });
 }
 
 export function cartTotalValue(cart, products) {
