@@ -79,7 +79,7 @@ export function renderAdminProductList(products, onEdit, onDelete) {
     const row = document.createElement('div');
     row.className = 'admin-list-item';
     row.innerHTML = `
-      <img src="${esc(p.img)}">
+      <img src="${esc(p.img)}" loading="lazy">
       <div class="info"><b>${esc(p.name)}</b><br><span class="mono">${fmt(p.price)}</span> · ${esc(p.category) || '—'} · ${p.sold || 0} vendidos</div>
       <div class="actions">
         <button data-edit="${p.id}">Editar</button>
@@ -99,12 +99,11 @@ export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
     : orders;
   if (filtered.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.55);">Nenhuma encomenda encontrada.</p>'; return; }
   wrap.innerHTML = "";
-  filtered.forEach((o, i) => {
-    const originalIndex = orders.indexOf(o);
+  filtered.forEach((o) => {
     const div = document.createElement('div');
     div.className = 'order-item';
     const statusBtns = STATUS_OPTIONS.map(s =>
-      `<button class="status-btn${o.status === s ? ' active' : ''}" data-status="${s}" data-idx="${originalIndex}" style="${STATUS_COLORS[s]}">${s}</button>`
+      `<button class="status-btn${o.status === s ? ' active' : ''}" data-status="${s}" data-id="${o.id}" style="${STATUS_COLORS[s]}">${s}</button>`
     ).join('');
     div.innerHTML = `
       <div class="oh"><span>${esc(o.name)} · ${esc(o.phone)}</span><span class="mono">${fmt(o.total)}</span></div>
@@ -115,7 +114,7 @@ export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
     wrap.appendChild(div);
   });
   wrap.querySelectorAll('.status-btn').forEach(b => {
-    b.onclick = () => onStatusChange(parseInt(b.dataset.idx), b.dataset.status);
+    b.onclick = () => onStatusChange(b.dataset.id, b.dataset.status);
   });
 }
 
