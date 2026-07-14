@@ -28,6 +28,14 @@ const state = {
 let searchTimeout = null;
 let lastFocusedElement = null;
 
+function showAuthForm(name) {
+  ['login','register','forgot','reset'].forEach(f => {
+    document.getElementById('auth' + f.charAt(0).toUpperCase() + f.slice(1) + 'Form').style.display = f === name ? '' : 'none';
+  });
+  ['loginError','registerError','forgotError'].forEach(id =>
+    document.getElementById(id).classList.remove('show'));
+}
+
 function trapFocus(modal) {
   const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
   if (focusable.length === 0) return;
@@ -123,6 +131,7 @@ function renderGrid() {
 }
 
 function renderCartState() {
+  state.cart = state.cart.filter(l => state.products.find(p => p.id === l.id));
   renderCart(state.cart, state.products);
   const user = getCurrentUser();
   if (user) cartStorage.save(user.id, state.cart).catch(e => console.error('Cart save error:', e));
@@ -222,6 +231,16 @@ function resolveCheckoutAddress() {
   return zoneVal;
 }
 
+function getCheckoutFields() {
+  const name = document.getElementById('ckName').value.trim();
+  const phone = document.getElementById('ckPhone').value.trim();
+  const addr = resolveCheckoutAddress();
+  const note = document.getElementById('ckNote').value.trim();
+  if (!name || !phone) { showToast("Preencha nome e telefone"); return null; }
+  if (!addr) { showToast("Selecione uma zona de entrega"); return null; }
+  return { name, phone, addr, note };
+}
+
 function buildOrderSummaryText() {
   return state.cart.map(l => {
     const p = state.products.find(pr => pr.id === l.id);
@@ -318,6 +337,30 @@ async function handleRemoveSupplier(index) {
   renderSuppliersList(state.suppliers, handleRemoveSupplier);
 }
 
+function readProductForm() {
+  const name = document.getElementById('npName').value.trim();
+  const price = parseFloat(document.getElementById('npPrice').value);
+  const category = document.getElementById('npCat').value.trim();
+  const img = document.getElementById('npImg').value.trim() || 'https://picsum.photos/seed/' + Date.now() + '/400/400';
+  const imagesRaw = document.getElementById('npImages').value.trim();
+  const images = imagesRaw ? imagesRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+  const desc = document.getElementById('npDesc').value.trim();
+  const material = document.getElementById('npMaterial').value.trim();
+  const entrega = document.getElementById('npEntrega').value.trim();
+  const sizesRaw = document.getElementById('npSizes').value.trim();
+  const sizes = sizesRaw ? sizesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const colorsRaw = document.getElementById('npColors').value.trim();
+  const colors = colorsRaw ? colorsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const badge = document.getElementById('npBadge').value.trim();
+  const supplier = document.getElementById('npSupplier').value;
+  return { name, price, category, img, images, desc, material, entrega, sizes, colors, badge, supplier };
+}
+
+function clearProductForm() {
+  ['npName','npPrice','npCat','npImg','npImages','npDesc','npMaterial','npEntrega','npSizes','npColors','npBadge'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('npSupplier').value = '';
+}
+
 function navigateTo(view) {
   if (view === 'auth') showAuthView();
   else if (view === 'public') showPublicView();
@@ -372,13 +415,8 @@ function setupEventListeners() {
     if (lastFocusedElement) lastFocusedElement.focus();
   };
   document.getElementById('pmAdd').onclick = () => {
-    const lineKey = state.currentProductId + '|' + (state.selectedSize || '') + '|' + (state.selectedColor || '');
-    const line = state.cart.find(l => l.key === lineKey);
-    if (line) line.qty++;
-    else state.cart.push({ key: lineKey, id: state.currentProductId, qty: 1, size: state.selectedSize || null, color: state.selectedColor || null });
-    renderCartState();
+    handleAddToCart(state.currentProductId, state.selectedSize, state.selectedColor);
     document.getElementById('productModal').classList.remove('show');
-    showToast("Adicionado ao carrinho");
   };
 
   document.getElementById('rvSend').onclick = async () => {
@@ -429,12 +467,9 @@ function setupEventListeners() {
   };
 
   document.getElementById('ckWhats').onclick = async () => {
-    const name = document.getElementById('ckName').value.trim();
-    const phone = document.getElementById('ckPhone').value.trim();
-    const addr = resolveCheckoutAddress();
-    const note = document.getElementById('ckNote').value.trim();
-    if (!name || !phone) { showToast("Preencha nome e telefone"); return; }
-    if (!addr) { showToast("Selecione uma zona de entrega"); return; }
+    const fields = getCheckoutFields();
+    if (!fields) return;
+    const { name, phone, addr, note } = fields;
     const saved = await handleRegisterOrder(name, phone, addr, note);
     if (!saved) return;
     const msg = `Olá! Gostaria de fazer uma encomenda:\n\n${buildOrderSummaryText()}\n\nTotal: ${fmt(cartTotalValue(state.cart, state.products))}\n\nNome: ${name}\nTelefone: ${phone}\nLocal: ${addr}${note ? '\nObs: ' + note : ''}`;
@@ -444,12 +479,9 @@ function setupEventListeners() {
 
   document.getElementById('ckSave').onclick = async () => {
     const btn = document.getElementById('ckSave');
-    const name = document.getElementById('ckName').value.trim();
-    const phone = document.getElementById('ckPhone').value.trim();
-    const addr = resolveCheckoutAddress();
-    const note = document.getElementById('ckNote').value.trim();
-    if (!name || !phone) { showToast("Preencha nome e telefone"); return; }
-    if (!addr) { showToast("Selecione uma zona de entrega"); return; }
+    const fields = getCheckoutFields();
+    if (!fields) return;
+    const { name, phone, addr, note } = fields;
     btn.disabled = true; btn.textContent = 'A registar...';
     const saved = await handleRegisterOrder(name, phone, addr, note);
     btn.disabled = false; btn.textContent = 'Registar encomenda';
@@ -484,35 +516,10 @@ function setupEventListeners() {
     showToast("Pedido enviado! Vamos procurar para si.");
   };
 
-  document.getElementById('showRegister').onclick = () => {
-    document.getElementById('authLoginForm').style.display = 'none';
-    document.getElementById('authRegisterForm').style.display = '';
-    document.getElementById('authForgotForm').style.display = 'none';
-    document.getElementById('authResetForm').style.display = 'none';
-    document.getElementById('loginError').classList.remove('show');
-    document.getElementById('registerError').classList.remove('show');
-  };
-  document.getElementById('showLogin').onclick = () => {
-    document.getElementById('authRegisterForm').style.display = 'none';
-    document.getElementById('authLoginForm').style.display = '';
-    document.getElementById('authForgotForm').style.display = 'none';
-    document.getElementById('authResetForm').style.display = 'none';
-    document.getElementById('loginError').classList.remove('show');
-    document.getElementById('registerError').classList.remove('show');
-  };
-  document.getElementById('showForgotPassword').onclick = () => {
-    document.getElementById('authLoginForm').style.display = 'none';
-    document.getElementById('authRegisterForm').style.display = 'none';
-    document.getElementById('authForgotForm').style.display = '';
-    document.getElementById('authResetForm').style.display = 'none';
-    document.getElementById('loginError').classList.remove('show');
-    document.getElementById('forgotError').classList.remove('show');
-  };
-  document.getElementById('showLoginFromForgot').onclick = () => {
-    document.getElementById('authForgotForm').style.display = 'none';
-    document.getElementById('authLoginForm').style.display = '';
-    document.getElementById('forgotError').classList.remove('show');
-  };
+  document.getElementById('showRegister').onclick = () => showAuthForm('register');
+  document.getElementById('showLogin').onclick = () => showAuthForm('login');
+  document.getElementById('showForgotPassword').onclick = () => showAuthForm('forgot');
+  document.getElementById('showLoginFromForgot').onclick = () => showAuthForm('login');
 
   document.getElementById('authLoginBtn').onclick = async () => {
     const btn = document.getElementById('authLoginBtn');
@@ -631,34 +638,19 @@ function setupEventListeners() {
 
   document.getElementById('npAdd').onclick = async () => {
     const eid = document.getElementById('editingId').value;
-    const name = document.getElementById('npName').value.trim();
-    const price = parseFloat(document.getElementById('npPrice').value);
-    const cat = document.getElementById('npCat').value.trim();
-    const img = document.getElementById('npImg').value.trim() || 'https://picsum.photos/seed/' + Date.now() + '/400/400';
-    const imagesRaw = document.getElementById('npImages').value.trim();
-    const images = imagesRaw ? imagesRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
-    const desc = document.getElementById('npDesc').value.trim();
-    const material = document.getElementById('npMaterial').value.trim();
-    const entrega = document.getElementById('npEntrega').value.trim();
-    const sizesRaw = document.getElementById('npSizes').value.trim();
-    const sizes = sizesRaw ? sizesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
-    const colorsRaw = document.getElementById('npColors').value.trim();
-    const colors = colorsRaw ? colorsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
-    const badge = document.getElementById('npBadge').value.trim();
-    const supplier = document.getElementById('npSupplier').value;
-    if (!name || !price) { showToast("Preencha nome e preço"); return; }
+    const data = readProductForm();
+    if (!data.name || !data.price) { showToast("Preencha nome e preço"); return; }
 
     if (eid) {
       const p = state.products.find(pr => pr.id === eid);
-      Object.assign(p, { name, price, category: cat, img, images, desc, material, entrega, sizes, colors, badge, supplier });
+      Object.assign(p, data);
       document.getElementById('editingId').value = '';
       document.getElementById('npAdd').textContent = "Publicar produto";
     } else {
-      state.products.push({ id: uid(), name, price, category: cat, img, images, desc, material, entrega, sizes, colors, badge, supplier, sold: 0, reviews: [] });
+      state.products.push({ id: uid(), ...data, sold: 0, reviews: [] });
     }
     await saveProducts(state.products);
-    ['npName', 'npPrice', 'npCat', 'npImg', 'npImages', 'npDesc', 'npMaterial', 'npEntrega', 'npSizes', 'npColors', 'npBadge'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('npSupplier').value = '';
+    clearProductForm();
     render();
     showToast("Produto publicado");
   };
