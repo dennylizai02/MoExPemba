@@ -55,7 +55,63 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 -- UPDATE profiles SET role = 'admin' WHERE phone = '840000000';
 
 -- =============================================================
--- 5. Tabela carts — carrinho persistente por utilizador
+-- 5. Tabela app_data — armazenamento chave-valor da aplicação
+-- =============================================================
+
+CREATE TABLE IF NOT EXISTS app_data (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL DEFAULT '[]'::jsonb,
+  is_admin BOOLEAN NOT NULL DEFAULT false,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE app_data ENABLE ROW LEVEL SECURITY;
+
+-- Dados públicos (is_admin=false): qualquer utilizador autenticado pode ler
+CREATE POLICY "Authenticated users can read public data"
+  ON app_data FOR SELECT
+  TO authenticated
+  USING (is_admin = false);
+
+-- Dados de admin (is_admin=false): apenas admins podem ler
+CREATE POLICY "Admins can read admin data"
+  ON app_data FOR SELECT
+  TO authenticated
+  USING (
+    is_admin = true
+    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
+
+-- Dados públicos: qualquer utilizador autenticado pode escrever (ex: favoritos)
+CREATE POLICY "Authenticated users can upsert public data"
+  ON app_data FOR INSERT
+  TO authenticated
+  WITH CHECK (is_admin = false);
+
+CREATE POLICY "Authenticated users can update public data"
+  ON app_data FOR UPDATE
+  TO authenticated
+  USING (is_admin = false);
+
+-- Dados de admin: apenas admins podem escrever
+CREATE POLICY "Admins can upsert admin data"
+  ON app_data FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    is_admin = true
+    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
+
+CREATE POLICY "Admins can update admin data"
+  ON app_data FOR UPDATE
+  TO authenticated
+  USING (
+    is_admin = true
+    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
+
+-- =============================================================
+-- 6. Tabela carts — carrinho persistente por utilizador
 -- =============================================================
 
 CREATE TABLE IF NOT EXISTS carts (
