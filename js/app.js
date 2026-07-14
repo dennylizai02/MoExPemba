@@ -6,7 +6,7 @@ import {
   isRecoverySession
 } from './auth.js';
 import {
-  loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments, saveSuppliers
+  loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments, saveSuppliers, loadFavorites
 } from './data.js';
 import { cartStorage } from './storage.js';
 import { renderProductCards, renderProductModal, renderReviews, matchesSearch } from './products.js';
@@ -24,6 +24,28 @@ const state = {
   currentProductId: null, selectedSize: null, selectedColor: null,
   clients: [], orderFilter: 'all'
 };
+
+let searchTimeout = null;
+let lastFocusedElement = null;
+
+function trapFocus(modal) {
+  const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (focusable.length === 0) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  modal.addEventListener('keydown', function handler(e) {
+    if (e.key === 'Tab') {
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    if (e.key === 'Escape') {
+      modal.classList.remove('show');
+      modal.removeEventListener('keydown', handler);
+      if (lastFocusedElement) lastFocusedElement.focus();
+    }
+  });
+  first.focus();
+}
 
 function fmtPrice(n) { return new Intl.NumberFormat('pt-MZ').format(n) + " MT"; }
 
@@ -105,7 +127,7 @@ function renderGrid() {
 function renderCartState() {
   renderCart(state.cart, state.products);
   const user = getCurrentUser();
-  if (user) cartStorage.save(user.id, state.cart);
+  if (user) cartStorage.save(user.id, state.cart).catch(e => console.error('Cart save error:', e));
 }
 
 function handleAddToCart(id, size, color) {
@@ -126,7 +148,8 @@ function handleAddToCart(id, size, color) {
 async function handleToggleFavorite(id) {
   if (state.favorites.includes(id)) state.favorites = state.favorites.filter(f => f !== id);
   else state.favorites.push(id);
-  await saveFavorites(state.favorites);
+  const user = getCurrentUser();
+  if (user) await saveFavorites(user.id, state.favorites);
   render();
 }
 
@@ -139,7 +162,10 @@ function openProductModalHandler(id) {
   renderProductModal(p, state.payments, state.zones);
   if (document.getElementById('pmSizeSelect')) document.getElementById('pmSizeSelect').onchange = (e) => state.selectedSize = e.target.value;
   if (document.getElementById('pmColorSelect')) document.getElementById('pmColorSelect').onchange = (e) => state.selectedColor = e.target.value;
-  document.getElementById('productModal').classList.add('show');
+  const modal = document.getElementById('productModal');
+  lastFocusedElement = document.activeElement;
+  modal.classList.add('show');
+  trapFocus(modal);
 }
 
 async function loadClients() {
@@ -207,7 +233,7 @@ function buildOrderSummaryText() {
 function finishCheckout() {
   const user = getCurrentUser();
   state.cart = [];
-  if (user) cartStorage.clear(user.id);
+  if (user) cartStorage.clear(user.id).catch(e => console.error('Cart clear error:', e));
   renderCartState();
   document.getElementById('checkoutModal').classList.remove('show');
   closeCart();
@@ -235,8 +261,15 @@ async function handleRegisterOrder(name, phone, addr, note) {
     const p = state.products.find(pr => pr.id === l.id);
     if (p) p.sold = (p.sold || 0) + l.qty;
   });
-  await saveOrders(state.orders);
-  await saveProducts(state.products);
+  try {
+    await saveOrders(state.orders);
+    await saveProducts(state.products);
+    return true;
+  } catch (e) {
+    console.error('Order save failed:', e);
+    showToast("Erro ao guardar encomenda. Tente novamente.");
+    return false;
+  }
 }
 
 function handleEditProduct(id) {
@@ -310,6 +343,7 @@ async function init() {
       const user = getCurrentUser();
       if (user) {
         try { state.cart = await cartStorage.load(user.id); } catch (e) { console.error('Cart load error:', e); }
+        try { state.favorites = await loadFavorites(user.id); } catch (e) { console.error('Favorites load error:', e); }
       }
       navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
     } else {
@@ -333,7 +367,10 @@ function setupEventListeners() {
     if (e.key === 'Escape') { closeCart(); closeAllModals(); }
   });
 
-  document.getElementById('pmClose').onclick = () => document.getElementById('productModal').classList.remove('show');
+  document.getElementById('pmClose').onclick = () => {
+    document.getElementById('productModal').classList.remove('show');
+    if (lastFocusedElement) lastFocusedElement.focus();
+  };
   document.getElementById('pmAdd').onclick = () => {
     const lineKey = state.currentProductId + '|' + (state.selectedSize || '') + '|' + (state.selectedColor || '');
     const line = state.cart.find(l => l.key === lineKey);
@@ -377,13 +414,19 @@ function setupEventListeners() {
     document.getElementById('ckAddrOtherWrap').style.display = 'none';
     document.getElementById('ckName').value = getCurrentUser().name || '';
     document.getElementById('ckPhone').value = getCurrentUser().phone || '';
-    document.getElementById('checkoutModal').classList.add('show');
+    const modal = document.getElementById('checkoutModal');
+    lastFocusedElement = document.activeElement;
+    modal.classList.add('show');
+    trapFocus(modal);
   };
 
   document.getElementById('ckZone').onchange = (e) => {
     document.getElementById('ckAddrOtherWrap').style.display = e.target.value === '__other' ? 'block' : 'none';
   };
-  document.getElementById('ckClose').onclick = () => document.getElementById('checkoutModal').classList.remove('show');
+  document.getElementById('ckClose').onclick = () => {
+    document.getElementById('checkoutModal').classList.remove('show');
+    if (lastFocusedElement) lastFocusedElement.focus();
+  };
 
   document.getElementById('ckWhats').onclick = async () => {
     const name = document.getElementById('ckName').value.trim();
@@ -391,7 +434,8 @@ function setupEventListeners() {
     const addr = resolveCheckoutAddress();
     const note = document.getElementById('ckNote').value.trim();
     if (!name || !phone || !addr) { showToast("Preencha nome, telefone e zona"); return; }
-    await handleRegisterOrder(name, phone, addr, note);
+    const saved = await handleRegisterOrder(name, phone, addr, note);
+    if (!saved) return;
     const msg = `Olá! Gostaria de fazer uma encomenda:\n\n${buildOrderSummaryText()}\n\nTotal: ${fmtPrice(cartTotalValue(state.cart, state.products))}\n\nNome: ${name}\nTelefone: ${phone}\nLocal: ${addr}${note ? '\nObs: ' + note : ''}`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
     finishCheckout();
@@ -405,15 +449,22 @@ function setupEventListeners() {
     const note = document.getElementById('ckNote').value.trim();
     if (!name || !phone || !addr) { showToast("Preencha nome, telefone e zona"); return; }
     btn.disabled = true; btn.textContent = 'A registar...';
-    await handleRegisterOrder(name, phone, addr, note);
+    const saved = await handleRegisterOrder(name, phone, addr, note);
     btn.disabled = false; btn.textContent = 'Registar encomenda';
+    if (!saved) return;
     showToast("Pedido registado! Vamos entrar em contacto.");
     finishCheckout();
   };
 
-  document.getElementById('searchBox').addEventListener('input', renderGrid);
+  document.getElementById('searchBox').addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(renderGrid, 200);
+  });
 
-  document.getElementById('reqClose').onclick = () => document.getElementById('requestModal').classList.remove('show');
+  document.getElementById('reqClose').onclick = () => {
+    document.getElementById('requestModal').classList.remove('show');
+    if (lastFocusedElement) lastFocusedElement.focus();
+  };
   document.getElementById('reqSend').onclick = async () => {
     const btn = document.getElementById('reqSend');
     const name = document.getElementById('reqName').value.trim();
