@@ -126,6 +126,7 @@
         <button class="admin-nav-btn" data-tab="clients">Clientes</button>
         <button class="admin-nav-btn" data-tab="requests">Pedidos</button>
         <button class="admin-nav-btn" data-tab="settings">Configurações</button>
+        <button class="admin-nav-btn" data-tab="suppliers">Fornecedores</button>
       </nav>
       <button class="admin-nav-btn admin-logout-btn" id="adLogout">Sair</button>
     </aside>
@@ -196,6 +197,7 @@
             <div class="field"><label>Cores (separadas por vírgula, opcional)</label><input id="npColors" placeholder="Ex: Azul, Vermelho"></div>
           </div>
           <div class="field"><label>Etiqueta (opcional)</label><input id="npBadge" placeholder="Ex: Novo, Destaque, Últimas peças..."></div>
+          <div class="field" id="npSupplierField"><label>Fornecedor (opcional)</label><select id="npSupplier"><option value="">Sem fornecedor</option></select></div>
           <button class="btn-primary" id="npAdd">Publicar produto</button>
         </div>
         <div class="admin-section">
@@ -239,6 +241,21 @@
           </div>
         </div>
       </div>
+
+      <!-- Fornecedores -->
+      <div id="tabSuppliers" style="display:none;">
+        <div class="admin-section">
+          <h3>Fornecedores</h3>
+          <p style="font-size:0.85rem;color:rgba(18,48,46,0.5);margin-top:0;">Gerir fornecedores associados aos produtos.</p>
+          <div id="suppliersList"></div>
+          <div class="zone-row">
+            <input id="newSupplierName" placeholder="Nome do fornecedor">
+            <input id="newSupplierContact" placeholder="Contacto (opcional)">
+            <button id="addSupplier">Adicionar</button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>

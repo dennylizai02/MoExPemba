@@ -8,7 +8,8 @@ export async function loadData() {
     customRequests: [],
     favorites: [],
     zones: ["Cariaco", "Alto Gingone", "Cimento"],
-    payments: ["M-Pesa", "e-Mola", "BIM"]
+    payments: ["M-Pesa", "e-Mola", "BIM"],
+    suppliers: []
   };
 
   const keys = [
@@ -17,7 +18,8 @@ export async function loadData() {
     { key: 'requests', admin: true, stateKey: 'customRequests' },
     { key: 'favorites', admin: false, stateKey: 'favorites' },
     { key: 'zones', admin: true, stateKey: 'zones' },
-    { key: 'payments', admin: true, stateKey: 'payments' }
+    { key: 'payments', admin: true, stateKey: 'payments' },
+    { key: 'suppliers', admin: true, stateKey: 'suppliers' }
   ];
 
   const results = await Promise.all(
@@ -54,6 +56,9 @@ export async function saveZones(zones) {
 }
 export async function savePayments(payments) {
   await storage.set('payments', JSON.stringify(payments), true);
+}
+export async function saveSuppliers(suppliers) {
+  await storage.set('suppliers', JSON.stringify(suppliers), true);
 }
 
 function getDefaultProducts() {

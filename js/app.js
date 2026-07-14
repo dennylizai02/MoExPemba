@@ -6,14 +6,14 @@ import {
   isRecoverySession
 } from './auth.js';
 import {
-  loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments
+  loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments, saveSuppliers
 } from './data.js';
 import { cartStorage } from './storage.js';
 import { renderProductCards, renderProductModal, renderReviews, matchesSearch } from './products.js';
 import { renderCart, cartTotalValue, openCartDrawer, closeCart, closeAllModals } from './cart.js';
 import {
   renderAdminProductList, renderAdminOrderList, renderAdminRequestList,
-  renderZonesList, renderPaymentsList, showAuthView, showPublicView,
+  renderZonesList, renderPaymentsList, renderSuppliersList, showAuthView, showPublicView,
   showAdminView, updateHeaderUI, showAuthError,
   renderDashboard, renderDashboardRecentOrders, renderAdminClientList
 } from './admin.js';
@@ -164,6 +164,22 @@ function renderAdminState() {
   renderAdminClientList(state.clients);
   renderZonesList(state.zones, handleRemoveZone);
   renderPaymentsList(state.payments, handleRemovePayment);
+  renderSuppliersList(state.suppliers || [], handleRemoveSupplier);
+  populateSupplierDropdown();
+}
+
+function populateSupplierDropdown() {
+  const sel = document.getElementById('npSupplier');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Sem fornecedor</option>';
+  (state.suppliers || []).forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.name;
+    opt.textContent = s.name + (s.contact ? ' · ' + s.contact : '');
+    sel.appendChild(opt);
+  });
+  sel.value = current;
 }
 
 function render() {
@@ -237,6 +253,7 @@ function handleEditProduct(id) {
   document.getElementById('npSizes').value = (p.sizes || []).join(', ');
   document.getElementById('npColors').value = (p.colors || []).join(', ');
   document.getElementById('npBadge').value = p.badge || '';
+  document.getElementById('npSupplier').value = p.supplier || '';
   document.getElementById('editingId').value = p.id;
   document.getElementById('npAdd').textContent = "Guardar alterações";
   document.getElementById('tabProducts').scrollIntoView({ behavior: 'smooth' });
@@ -260,6 +277,12 @@ async function handleRemovePayment(index) {
   state.payments.splice(index, 1);
   await savePayments(state.payments);
   renderPaymentsList(state.payments, handleRemovePayment);
+}
+
+async function handleRemoveSupplier(index) {
+  state.suppliers.splice(index, 1);
+  await saveSuppliers(state.suppliers);
+  renderSuppliersList(state.suppliers, handleRemoveSupplier);
 }
 
 function navigateTo(view) {
@@ -539,6 +562,7 @@ function setupEventListeners() {
         document.getElementById('tabClients').style.display = tab === 'clients' ? 'block' : 'none';
         document.getElementById('tabRequests').style.display = tab === 'requests' ? 'block' : 'none';
         document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
+        document.getElementById('tabSuppliers').style.display = tab === 'suppliers' ? 'block' : 'none';
       }
     };
   });
@@ -568,18 +592,20 @@ function setupEventListeners() {
     const colorsRaw = document.getElementById('npColors').value.trim();
     const colors = colorsRaw ? colorsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
     const badge = document.getElementById('npBadge').value.trim();
+    const supplier = document.getElementById('npSupplier').value;
     if (!name || !price) { showToast("Preencha nome e preço"); return; }
 
     if (eid) {
       const p = state.products.find(pr => pr.id === eid);
-      Object.assign(p, { name, price, category: cat, img, images, desc, material, entrega, sizes, colors, badge });
+      Object.assign(p, { name, price, category: cat, img, images, desc, material, entrega, sizes, colors, badge, supplier });
       document.getElementById('editingId').value = '';
       document.getElementById('npAdd').textContent = "Publicar produto";
     } else {
-      state.products.push({ id: uid(), name, price, category: cat, img, images, desc, material, entrega, sizes, colors, badge, sold: 0, reviews: [] });
+      state.products.push({ id: uid(), name, price, category: cat, img, images, desc, material, entrega, sizes, colors, badge, supplier, sold: 0, reviews: [] });
     }
     await saveProducts(state.products);
     ['npName', 'npPrice', 'npCat', 'npImg', 'npImages', 'npDesc', 'npMaterial', 'npEntrega', 'npSizes', 'npColors', 'npBadge'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('npSupplier').value = '';
     render();
     showToast("Produto publicado");
   };
@@ -600,6 +626,17 @@ function setupEventListeners() {
     await savePayments(state.payments);
     document.getElementById('newPayment').value = '';
     renderPaymentsList(state.payments, handleRemovePayment);
+  };
+
+  document.getElementById('addSupplier').onclick = async () => {
+    const name = document.getElementById('newSupplierName').value.trim();
+    const contact = document.getElementById('newSupplierContact').value.trim();
+    if (!name) return;
+    state.suppliers.push({ name, contact });
+    await saveSuppliers(state.suppliers);
+    document.getElementById('newSupplierName').value = '';
+    document.getElementById('newSupplierContact').value = '';
+    renderSuppliersList(state.suppliers, handleRemoveSupplier);
   };
 
 }

@@ -185,6 +185,20 @@ export function renderPaymentsList(payments, onChange) {
   wrap.querySelectorAll('[data-rmpay]').forEach(b => b.onclick = () => onChange(parseInt(b.dataset.rmpay)));
 }
 
+export function renderSuppliersList(suppliers, onChange) {
+  const wrap = document.getElementById('suppliersList');
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  if (suppliers.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.55);">Nenhum fornecedor registado.</p>'; return; }
+  suppliers.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'zone-row';
+    row.innerHTML = `<span class="info-pill" style="flex:1;">${esc(s.name)}${s.contact ? ' · ' + esc(s.contact) : ''}</span><button data-rmsupplier="${i}">Remover</button>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('[data-rmsupplier]').forEach(b => b.onclick = () => onChange(parseInt(b.dataset.rmsupplier)));
+}
+
 export function showAuthView() {
   document.getElementById('authView').style.display = '';
   document.getElementById('publicView').style.display = 'none';
