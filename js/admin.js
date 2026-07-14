@@ -165,7 +165,7 @@ export function renderZonesList(zones, onChange) {
   zones.forEach((z, i) => {
     const row = document.createElement('div');
     row.className = 'zone-row';
-    row.innerHTML = `<span class="info-pill" style="flex:1;">${z}</span><button data-rmzone="${i}">Remover</button>`;
+    row.innerHTML = `<span class="info-pill" style="flex:1;">${esc(z)}</span><button data-rmzone="${i}">Remover</button>`;
     wrap.appendChild(row);
   });
   wrap.querySelectorAll('[data-rmzone]').forEach(b => b.onclick = () => onChange(parseInt(b.dataset.rmzone)));
@@ -179,7 +179,7 @@ export function renderPaymentsList(payments, onChange) {
   payments.forEach((p, i) => {
     const row = document.createElement('div');
     row.className = 'pay-row';
-    row.innerHTML = `<span class="info-pill" style="flex:1;">${p}</span><button data-rmpay="${i}">Remover</button>`;
+    row.innerHTML = `<span class="info-pill" style="flex:1;">${esc(p)}</span><button data-rmpay="${i}">Remover</button>`;
     wrap.appendChild(row);
   });
   wrap.querySelectorAll('[data-rmpay]').forEach(b => b.onclick = () => onChange(parseInt(b.dataset.rmpay)));
