@@ -338,11 +338,11 @@
       <div class="field"><label>Nome completo</label><input id="ckName" placeholder="O seu nome"></div>
       <div class="field"><label>Telefone / WhatsApp</label><input id="ckPhone" placeholder="84xxxxxxx"></div>
       <div class="field">
-        <label>Bairro / Zona de entrega</label>
-        <select id="ckZone"><option value="">Selecione a zona...</option></select>
+        <label>Bairro / Zona de entrega <span style="color:var(--coral);">*</span></label>
+        <select id="ckZone" required><option value="">Selecione a zona...</option></select>
       </div>
       <div class="field" id="ckAddrOtherWrap" style="display:none;">
-        <label>Especifique o local</label><input id="ckAddr" placeholder="Ex: Cariaco, Alto Gingone...">
+        <label>Especifique o local <span style="color:var(--coral);">*</span></label><input id="ckAddr" placeholder="Ex: Cariaco, Alto Gingone...">
       </div>
       <div class="field"><label>Observações (opcional)</label><textarea id="ckNote" placeholder="Cor, tamanho, referência..."></textarea></div>
       <button class="btn-primary mango" id="ckWhats">Enviar pedido por WhatsApp</button>

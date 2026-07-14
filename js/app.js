@@ -433,7 +433,8 @@ function setupEventListeners() {
     const phone = document.getElementById('ckPhone').value.trim();
     const addr = resolveCheckoutAddress();
     const note = document.getElementById('ckNote').value.trim();
-    if (!name || !phone || !addr) { showToast("Preencha nome, telefone e zona"); return; }
+    if (!name || !phone) { showToast("Preencha nome e telefone"); return; }
+    if (!addr) { showToast("Selecione uma zona de entrega"); return; }
     const saved = await handleRegisterOrder(name, phone, addr, note);
     if (!saved) return;
     const msg = `Olá! Gostaria de fazer uma encomenda:\n\n${buildOrderSummaryText()}\n\nTotal: ${fmtPrice(cartTotalValue(state.cart, state.products))}\n\nNome: ${name}\nTelefone: ${phone}\nLocal: ${addr}${note ? '\nObs: ' + note : ''}`;
@@ -447,7 +448,8 @@ function setupEventListeners() {
     const phone = document.getElementById('ckPhone').value.trim();
     const addr = resolveCheckoutAddress();
     const note = document.getElementById('ckNote').value.trim();
-    if (!name || !phone || !addr) { showToast("Preencha nome, telefone e zona"); return; }
+    if (!name || !phone) { showToast("Preencha nome e telefone"); return; }
+    if (!addr) { showToast("Selecione uma zona de entrega"); return; }
     btn.disabled = true; btn.textContent = 'A registar...';
     const saved = await handleRegisterOrder(name, phone, addr, note);
     btn.disabled = false; btn.textContent = 'Registar encomenda';
