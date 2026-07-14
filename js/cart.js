@@ -4,7 +4,7 @@ import { cartStorage } from './storage.js';
 
 function saveCart(cart) {
   const user = getCurrentUser();
-  if (user) cartStorage.save(user.id, cart);
+  if (user) cartStorage.save(user.id, cart).catch(e => console.error('Cart save error:', e));
 }
 
 export function renderCart(cart, products) {
@@ -29,7 +29,7 @@ export function renderCart(cart, products) {
     const row = document.createElement('div');
     row.className = 'cart-line';
     row.innerHTML = `
-      <img src="${esc(p.img)}">
+      <img src="${esc(p.img)}" alt="${esc(p.name)}">
       <div class="info">
         <div class="n">${esc(p.name)}</div>
         ${variantLabel ? `<div style="font-size:0.75rem;color:rgba(18,48,46,0.6);">${esc(variantLabel)}</div>` : ''}
