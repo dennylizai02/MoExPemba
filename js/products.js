@@ -9,7 +9,7 @@ export function renderProductCards(list, container, onAdd, onView, onFav, favori
     card.innerHTML = `
       ${p.badge ? `<div class="tag-badge">${esc(p.badge)}</div>` : ''}
       <button class="fav-btn ${isFav ? 'active' : ''}" data-fav="${p.id}">${isFav ? '♥' : '♡'}</button>
-      <img class="tag-img" src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">
+      <img class="tag-img" src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='https://picsum.photos/seed/fallback/400/400'">
       <div class="tag-body">
         <div class="tag-cat">${esc(p.category)}</div>
         <div class="tag-name">${esc(p.name)}</div>
