@@ -805,7 +805,14 @@ footer.site button{ background:none;border:none;text-decoration:underline;color:
 }
 @keyframes spin{ to{ transform:rotate(360deg); } }
 .loader-text{
-  font-family:var(--font-display);
+  font-family:'Fraunces', serif;
   font-size:1.1rem; font-weight:600;
   color:var(--teal-dark);
+}
+
+:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+button:focus-visible { outline:2px solid var(--mango); outline-offset:2px; }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
 }
