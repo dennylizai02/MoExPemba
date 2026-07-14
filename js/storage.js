@@ -20,6 +20,14 @@ export const storage = {
   }
 };
 
+function applySizeColorFilter(query, size, color) {
+  if (size == null) query = query.is('size', null);
+  else query = query.eq('size', size);
+  if (color == null) query = query.is('color', null);
+  else query = query.eq('color', color);
+  return query;
+}
+
 export const cartStorage = {
   async load(userId) {
     if (!userId) return [];
@@ -47,7 +55,7 @@ export const cartStorage = {
       color: l.color || null,
       qty: l.qty
     }));
-    const existingIds = new Set(cart.map(l => l.id + '|' + (l.size || '') + '|' + (l.color || '')));
+    const existingKeys = new Set(cart.map(l => l.id + '|' + (l.size || '') + '|' + (l.color || '')));
     const { data: existing, error: fetchErr } = await supabase
       .from('carts')
       .select('product_id, size, color')
@@ -55,15 +63,12 @@ export const cartStorage = {
     if (fetchErr) throw fetchErr;
     const toDelete = (existing || []).filter(r => {
       const k = r.product_id + '|' + (r.size || '') + '|' + (r.color || '');
-      return !existingIds.has(k);
+      return !existingKeys.has(k);
     });
     for (const d of toDelete) {
-      const { error } = await supabase.from('carts')
-        .delete()
-        .eq('user_id', userId)
-        .eq('product_id', d.product_id)
-        .eq('size', d.size || '')
-        .eq('color', d.color || '');
+      let q = supabase.from('carts').delete().eq('user_id', userId).eq('product_id', d.product_id);
+      q = applySizeColorFilter(q, d.size, d.color);
+      const { error } = await q;
       if (error) throw error;
     }
     if (lines.length > 0) {
@@ -86,23 +91,23 @@ export const cartStorage = {
 
   async updateQty(userId, line) {
     if (!userId) return;
-    const { error } = await supabase.from('carts')
+    let q = supabase.from('carts')
       .update({ qty: line.qty })
       .eq('user_id', userId)
-      .eq('product_id', line.id)
-      .eq('size', line.size || '')
-      .eq('color', line.color || '');
+      .eq('product_id', line.id);
+    q = applySizeColorFilter(q, line.size || null, line.color || null);
+    const { error } = await q;
     if (error) throw error;
   },
 
   async removeItem(userId, line) {
     if (!userId) return;
-    const { error } = await supabase.from('carts')
+    let q = supabase.from('carts')
       .delete()
       .eq('user_id', userId)
-      .eq('product_id', line.id)
-      .eq('size', line.size || '')
-      .eq('color', line.color || '');
+      .eq('product_id', line.id);
+    q = applySizeColorFilter(q, line.size || null, line.color || null);
+    const { error } = await q;
     if (error) throw error;
   },
 
