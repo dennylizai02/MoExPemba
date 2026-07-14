@@ -21,13 +21,6 @@ export function renderCart(cart, products) {
     document.getElementById('cartTotal').textContent = fmt(0);
     return;
   }
-  const invalidKeys = cart.filter(l => !products.find(pr => pr.id === l.id)).map(l => l.key);
-  if (invalidKeys.length) {
-    for (const key of invalidKeys) {
-      const idx = cart.findIndex(l => l.key === key);
-      if (idx !== -1) cart.splice(idx, 1);
-    }
-  }
   let total = 0;
   wrap.innerHTML = "";
   cart.forEach(l => {
