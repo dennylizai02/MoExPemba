@@ -47,8 +47,6 @@ function trapFocus(modal) {
   first.focus();
 }
 
-function fmtPrice(n) { return new Intl.NumberFormat('pt-MZ').format(n) + " MT"; }
-
 function renderChips() {
   const cats = ["Todos", ...new Set(state.products.map(p => p.category).filter(Boolean))];
   const wrap = document.getElementById('categoryChips');
@@ -173,8 +171,10 @@ async function loadClients() {
   state.clients = data || [];
 }
 
-function handleOrderStatusChange(index, newStatus) {
-  state.orders[index].status = newStatus;
+function handleOrderStatusChange(orderId, newStatus) {
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order) return;
+  order.status = newStatus;
   saveOrders(state.orders);
   renderAdminState();
   showToast("Status atualizado");
@@ -226,7 +226,7 @@ function buildOrderSummaryText() {
   return state.cart.map(l => {
     const p = state.products.find(pr => pr.id === l.id);
     const variant = [l.size, l.color].filter(Boolean).join(' · ');
-    return `${l.qty}x ${p.name}${variant ? ' (' + variant + ')' : ''} - ${fmtPrice(p.price * l.qty)}`;
+    return `${l.qty}x ${p.name}${variant ? ' (' + variant + ')' : ''} - ${fmt(p.price * l.qty)}`;
   }).join('\n');
 }
 
@@ -400,7 +400,7 @@ function setupEventListeners() {
   document.getElementById('pmShare').onclick = () => {
     const p = state.products.find(pr => pr.id === state.currentProductId);
     if (!p) return;
-    const text = `Olha isto: ${p.name} — ${fmtPrice(p.price)}. Vê mais na MEP Store!`;
+    const text = `Olha isto: ${p.name} — ${fmt(p.price)}. Vê mais na MEP Store!`;
     if (navigator.share) navigator.share({ title: p.name, text }).catch(() => {});
     else window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -437,7 +437,7 @@ function setupEventListeners() {
     if (!addr) { showToast("Selecione uma zona de entrega"); return; }
     const saved = await handleRegisterOrder(name, phone, addr, note);
     if (!saved) return;
-    const msg = `Olá! Gostaria de fazer uma encomenda:\n\n${buildOrderSummaryText()}\n\nTotal: ${fmtPrice(cartTotalValue(state.cart, state.products))}\n\nNome: ${name}\nTelefone: ${phone}\nLocal: ${addr}${note ? '\nObs: ' + note : ''}`;
+    const msg = `Olá! Gostaria de fazer uma encomenda:\n\n${buildOrderSummaryText()}\n\nTotal: ${fmt(cartTotalValue(state.cart, state.products))}\n\nNome: ${name}\nTelefone: ${phone}\nLocal: ${addr}${note ? '\nObs: ' + note : ''}`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
     finishCheckout();
   };
