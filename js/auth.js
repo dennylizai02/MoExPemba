@@ -102,6 +102,3 @@ export async function completePasswordReset(newPassword) {
 export function isRecoverySession() {
   return window.__recoveryHash !== '' || window.location.hash.includes('type=recovery');
 }
-
-export async function loadUsers() {}
-export async function seedAdmin() {}
