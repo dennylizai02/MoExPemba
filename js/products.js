@@ -37,8 +37,8 @@ export function renderProductModal(p, payments, zones) {
   document.getElementById('pmEntrega').textContent = p.entrega ? `🚚 Entrega estimada: ${p.entrega}` : '';
   document.getElementById('pmSold').textContent = p.sold ? `${p.sold} pessoas já compraram este produto` : '';
   document.getElementById('pmPrice').textContent = fmt(p.price);
-  document.getElementById('pmPayments').innerHTML = payments.map(pay => `<span class="info-pill">${pay}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
-  document.getElementById('pmZones').innerHTML = zones.map(z => `<span class="info-pill">${z}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
+  document.getElementById('pmPayments').innerHTML = payments.map(pay => `<span class="info-pill">${esc(pay)}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
+  document.getElementById('pmZones').innerHTML = zones.map(z => `<span class="info-pill">${esc(z)}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
 
   const allImages = [p.img, ...(p.images || [])];
   const thumbsWrap = document.getElementById('pmThumbs');
