@@ -31,8 +31,8 @@ export async function loadData() {
   });
 
   if (!results[0]) await storage.set('products', JSON.stringify(state.products), true);
-  if (!results[4]) await storage.set('zones', JSON.stringify(state.zones), true);
-  if (!results[5]) await storage.set('payments', JSON.stringify(state.payments), true);
+  if (!results[3]) await storage.set('zones', JSON.stringify(state.zones), true);
+  if (!results[4]) await storage.set('payments', JSON.stringify(state.payments), true);
 
   return state;
 }
