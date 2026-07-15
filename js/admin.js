@@ -145,6 +145,8 @@ export function renderAdminClientList(clients) {
     row.className = 'admin-list-item';
     const roleBadge = c.role === 'admin'
       ? '<span class="user-role" style="font-size:0.6rem;">Admin</span>'
+      : c.role === 'seller'
+      ? '<span class="user-role seller" style="font-size:0.6rem;">Vendedor</span>'
       : '';
     row.innerHTML = `
       <div class="client-avatar">${esc((c.name || '?')[0].toUpperCase())}</div>
