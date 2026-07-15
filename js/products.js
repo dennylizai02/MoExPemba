@@ -98,5 +98,5 @@ export function renderReviews(p) {
 export function matchesSearch(p, term) {
   if (!term) return true;
   const hay = `${p.name} ${p.category || ''} ${p.desc || ''} ${p.material || ''}`.toLowerCase();
-  return term.split(/\s+/).every(word => word.length > 1 && hay.includes(word));
+  return term.split(/\s+/).every(word => word.length >= 1 && hay.includes(word));
 }
