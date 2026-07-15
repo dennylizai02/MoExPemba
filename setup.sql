@@ -49,10 +49,11 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   FOR EACH ROW
   EXECUTE FUNCTION handle_new_user();
 
--- 4. Criar admin
+-- 4. Criar admin / vendedor
 -- Primeiro: crie a conta normalmente pela app
--- Depois: execute este UPDATE para tornar o utilizador admin
+-- Depois: execute este UPDATE para tornar o utilizador admin ou vendedor
 -- UPDATE profiles SET role = 'admin' WHERE phone = '840000000';
+-- UPDATE profiles SET role = 'seller' WHERE phone = '840000000';
 
 -- =============================================================
 -- 5. Tabela app_data — armazenamento chave-valor da aplicação
@@ -73,13 +74,13 @@ CREATE POLICY "Authenticated users can read public data"
   TO authenticated
   USING (is_admin = false);
 
--- Dados de admin (is_admin=false): apenas admins podem ler
-CREATE POLICY "Admins can read admin data"
+-- Dados de admin (is_admin=true): apenas admins e vendedores podem ler
+CREATE POLICY "Admins and sellers can read admin data"
   ON app_data FOR SELECT
   TO authenticated
   USING (
     is_admin = true
-    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'seller'))
   );
 
 -- Dados públicos: qualquer utilizador autenticado pode escrever (ex: favoritos)
@@ -93,21 +94,21 @@ CREATE POLICY "Authenticated users can update public data"
   TO authenticated
   USING (is_admin = false);
 
--- Dados de admin: apenas admins podem escrever
-CREATE POLICY "Admins can upsert admin data"
+-- Dados de admin: apenas admins e vendedores podem escrever
+CREATE POLICY "Admins and sellers can upsert admin data"
   ON app_data FOR INSERT
   TO authenticated
   WITH CHECK (
     is_admin = true
-    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'seller'))
   );
 
-CREATE POLICY "Admins can update admin data"
+CREATE POLICY "Admins and sellers can update admin data"
   ON app_data FOR UPDATE
   TO authenticated
   USING (
     is_admin = true
-    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'seller'))
   );
 
 -- =============================================================

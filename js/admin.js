@@ -230,6 +230,8 @@ export function showPublicView() {
 }
 
 export function showAdminView() {
+  const user = arguments.length > 0 ? arguments[0] : null;
+  const isSeller = user && user.role === 'seller';
   document.getElementById('authView').style.display = 'none';
   document.getElementById('adminView').style.display = '';
   document.getElementById('adminView').querySelector('.admin-sidebar').style.display = '';
@@ -238,7 +240,21 @@ export function showAdminView() {
   content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
   document.getElementById('publicView').style.display = 'none';
   document.querySelector('footer.site').style.display = 'none';
+
   document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+
+  const adminOnlyTabs = ['clients', 'requests', 'settings', 'suppliers'];
+  document.querySelectorAll('.admin-nav-btn[data-tab]').forEach(btn => {
+    const tab = btn.dataset.tab;
+    if (isSeller && adminOnlyTabs.includes(tab)) {
+      btn.style.display = 'none';
+    } else {
+      btn.style.display = '';
+      if (isSeller && tab === 'orders') btn.textContent = 'As Minhas Encomendas';
+      else if (!isSeller && tab === 'orders') btn.textContent = 'Encomendas';
+    }
+  });
+
   const dashboardBtn = document.querySelector('[data-tab="dashboard"]');
   if (dashboardBtn) dashboardBtn.classList.add('active');
   document.getElementById('tabDashboard').style.display = 'block';
@@ -256,15 +272,18 @@ export function updateHeaderUI(user) {
     return;
   }
   const isAdmin = user.role === 'admin';
+  const isSeller = user.role === 'seller';
+  const hasPanel = isAdmin || isSeller;
+  const roleBadge = isAdmin ? 'Lojista' : isSeller ? 'Vendedor' : '';
   wrap.style.display = 'flex';
   wrap.innerHTML = `
     <div class="user-badge">
       <span class="user-name">${user.name}</span>
-      ${isAdmin ? '<span class="user-role">Lojista</span>' : ''}
+      ${roleBadge ? `<span class="user-role ${isSeller ? 'seller' : ''}">${roleBadge}</span>` : ''}
     </div>
-    ${!isAdmin ? '<button class="logout-btn" id="userLogout">Sair</button>' : ''}
+    ${!hasPanel ? '<button class="logout-btn" id="userLogout">Sair</button>' : ''}
   `;
-  if (!isAdmin) {
+  if (!hasPanel) {
     document.getElementById('userLogout').onclick = async () => {
       await logout();
       document.getElementById('adminView').style.display = 'none';
@@ -275,8 +294,8 @@ export function updateHeaderUI(user) {
       document.getElementById('authView').style.display = '';
     };
   }
-  openAdminBtn.style.display = isAdmin ? '' : 'none';
-  cartBtn.style.display = isAdmin ? 'none' : '';
+  openAdminBtn.style.display = hasPanel ? '' : 'none';
+  cartBtn.style.display = hasPanel ? 'none' : '';
 }
 
 export function showAuthError(id, msg) {

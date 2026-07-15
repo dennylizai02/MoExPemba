@@ -724,6 +724,10 @@ footer.site button{ background:none;border:none;text-decoration:underline;color:
   padding:2px 7px;
   border-radius:4px;
 }
+.user-badge .user-role.seller{
+  background:#3b82f6;
+  color:#fff;
+}
 .logout-btn{
   background:none;
   border:1px solid rgba(251,247,238,0.3);

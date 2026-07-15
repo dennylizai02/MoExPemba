@@ -8,6 +8,15 @@ export function isCurrentUserAdmin() {
   return currentUserProfile && currentUserProfile.role === 'admin';
 }
 
+export function isCurrentUserSeller() {
+  return currentUserProfile && currentUserProfile.role === 'seller';
+}
+
+export function canAccessPanel() {
+  const role = currentUserProfile?.role;
+  return role === 'admin' || role === 'seller';
+}
+
 async function fetchProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')

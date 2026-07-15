@@ -2,7 +2,8 @@ import { WHATSAPP_NUMBER, supabase } from './config.js';
 import { fmt, uid, showToast } from './utils.js';
 import {
   registerUser, loginUser, logout, restoreSession, getCurrentUser,
-  isCurrentUserAdmin, requestPasswordReset, completePasswordReset,
+  isCurrentUserAdmin, isCurrentUserSeller, canAccessPanel,
+  requestPasswordReset, completePasswordReset,
   isRecoverySession
 } from './auth.js';
 import {
@@ -204,6 +205,7 @@ function openProductModalHandler(id) {
 }
 
 async function loadClients() {
+  if (!isCurrentUserAdmin()) { state.clients = []; return; }
   const { data } = await supabase.from('profiles').select('id, name, phone, email, role, created_at').order('created_at', { ascending: false });
   state.clients = data || [];
 }
@@ -219,12 +221,16 @@ function handleOrderStatusChange(orderId, newStatus) {
 
 function renderAdminState() {
   if (document.getElementById('adminView').style.display === 'none') return;
-  renderDashboard(state.orders, state.products, state.customRequests);
-  renderDashboardRecentOrders(state.orders);
-  renderAdminProductList(state.products, handleEditProduct, handleDeleteProduct);
-  renderAdminOrderList(state.orders, handleOrderStatusChange, state.orderFilter);
-  renderAdminRequestList(state.customRequests);
-  renderAdminClientList(state.clients);
+  const user = getCurrentUser();
+  const isSeller = user && user.role === 'seller';
+  const myProducts = isSeller ? state.products.filter(p => p.created_by === user.id) : state.products;
+  const myOrders = isSeller ? state.orders.filter(o => o.items && o.items.some(i => myProducts.some(p => p.name === i.name))) : state.orders;
+  renderDashboard(myOrders, myProducts, isSeller ? [] : state.customRequests);
+  renderDashboardRecentOrders(myOrders);
+  renderAdminProductList(myProducts, handleEditProduct, handleDeleteProduct);
+  renderAdminOrderList(myOrders, handleOrderStatusChange, state.orderFilter);
+  renderAdminRequestList(isSeller ? [] : state.customRequests);
+  renderAdminClientList(isSeller ? [] : state.clients);
   renderZonesList(state.zones, handleRemoveZone);
   renderPaymentsList(state.payments, handleRemovePayment);
   renderSuppliersList(state.suppliers || [], handleRemoveSupplier);
@@ -323,6 +329,8 @@ async function handleRegisterOrder(name, phone, addr, note) {
 function handleEditProduct(id) {
   const p = state.products.find(pr => pr.id === id);
   if (!p) return;
+  const user = getCurrentUser();
+  if (user && user.role === 'seller' && p.created_by !== user.id) { showToast("Só pode editar os seus próprios produtos"); return; }
   document.getElementById('npName').value = p.name;
   document.getElementById('npPrice').value = p.price;
   document.getElementById('npCat').value = p.category || '';
@@ -341,6 +349,10 @@ function handleEditProduct(id) {
 }
 
 async function handleDeleteProduct(id) {
+  const p = state.products.find(pr => pr.id === id);
+  if (!p) return;
+  const user = getCurrentUser();
+  if (user && user.role === 'seller' && p.created_by !== user.id) { showToast("Só pode apagar os seus próprios produtos"); return; }
   if (!confirm("Tem a certeza que deseja apagar este produto?")) return;
   state.products = state.products.filter(pr => pr.id !== id);
   await saveProducts(state.products);
@@ -393,7 +405,7 @@ function clearProductForm() {
 function navigateTo(view) {
   if (view === 'auth') showAuthView();
   else if (view === 'public') showPublicView();
-  else if (view === 'admin') showAdminView();
+  else if (view === 'admin') showAdminView(getCurrentUser());
   updateHeaderUI(getCurrentUser());
 }
 
@@ -417,7 +429,7 @@ async function init() {
         try { state.cart = await cartStorage.load(user.id); } catch (e) { console.error('Cart load error:', e); }
         try { state.favorites = await loadFavorites(user.id); } catch (e) { console.error('Favorites load error:', e); }
       }
-      navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
+      navigateTo(canAccessPanel() ? 'admin' : 'public');
     } else {
       navigateTo('auth');
     }
@@ -582,7 +594,7 @@ function setupEventListeners() {
     const result = await loginUser(email, pass);
     btn.disabled = false; btn.textContent = 'Entrar';
     if (result.error) { showAuthError('loginError', result.error); return; }
-    navigateTo(isCurrentUserAdmin() ? 'admin' : 'public');
+    navigateTo(canAccessPanel() ? 'admin' : 'public');
     render();
   };
   document.getElementById('authLoginPass').addEventListener('keydown', e => {
@@ -668,7 +680,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('openAdmin').onclick = () => {
-    if (!getCurrentUser() || !isCurrentUserAdmin()) { showToast("Acesso não autorizado"); return; }
+    if (!getCurrentUser() || !canAccessPanel()) { showToast("Acesso não autorizado"); return; }
     closeAllModals();
     closeCart();
     navigateTo('admin');
@@ -685,6 +697,7 @@ function setupEventListeners() {
   document.querySelectorAll('.admin-nav-btn').forEach(t => {
     if (t.id === 'adLogout') return;
     t.onclick = () => {
+      if (t.style.display === 'none') return;
       document.querySelectorAll('.admin-nav-btn').forEach(x => x.classList.remove('active'));
       t.classList.add('active');
       const tab = t.dataset.tab;
@@ -700,6 +713,7 @@ function setupEventListeners() {
         document.getElementById('tabRequests').style.display = tab === 'requests' ? 'block' : 'none';
         document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
         document.getElementById('tabSuppliers').style.display = tab === 'suppliers' ? 'block' : 'none';
+        renderAdminState();
       }
     };
   });
@@ -724,7 +738,7 @@ function setupEventListeners() {
       document.getElementById('editingId').value = '';
       document.getElementById('npAdd').textContent = "Publicar produto";
     } else {
-      state.products.push({ id: uid(), ...data, sold: 0, reviews: [] });
+      state.products.push({ id: uid(), ...data, sold: 0, reviews: [], created_by: getCurrentUser()?.id || null });
     }
     try {
       await saveProducts(state.products);
