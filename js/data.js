@@ -30,9 +30,13 @@ export async function loadData() {
     state[k.stateKey] = raw ? JSON.parse(raw.value) : defaults[k.stateKey];
   });
 
-  if (!results[0]) await storage.set('products', JSON.stringify(state.products), true);
-  if (!results[3]) await storage.set('zones', JSON.stringify(state.zones), true);
-  if (!results[4]) await storage.set('payments', JSON.stringify(state.payments), true);
+  try {
+    if (!results[0]) await storage.set('products', JSON.stringify(state.products), true);
+    if (!results[3]) await storage.set('zones', JSON.stringify(state.zones), true);
+    if (!results[4]) await storage.set('payments', JSON.stringify(state.payments), true);
+  } catch (e) {
+    console.warn('Could not persist defaults (non-admin or RLS):', e);
+  }
 
   return state;
 }
