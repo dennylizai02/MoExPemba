@@ -725,28 +725,45 @@ function setupEventListeners() {
     } else {
       state.products.push({ id: uid(), ...data, sold: 0, reviews: [] });
     }
-    await saveProducts(state.products);
-    clearProductForm();
-    render();
-    showToast("Produto publicado");
+    try {
+      await saveProducts(state.products);
+      clearProductForm();
+      render();
+      showToast("Produto publicado");
+    } catch (e) {
+      console.error('Product save failed:', e);
+      showToast("Erro ao guardar produto. Tente novamente.");
+    }
   };
 
   document.getElementById('addZone').onclick = async () => {
     const val = document.getElementById('newZone').value.trim();
     if (!val) return;
     state.zones.push(val);
-    await saveZones(state.zones);
-    document.getElementById('newZone').value = '';
-    renderZonesList(state.zones, handleRemoveZone);
+    try {
+      await saveZones(state.zones);
+      document.getElementById('newZone').value = '';
+      renderZonesList(state.zones, handleRemoveZone);
+    } catch (e) {
+      console.error('Zone save failed:', e);
+      state.zones.pop();
+      showToast("Erro ao guardar zona. Tente novamente.");
+    }
   };
 
   document.getElementById('addPayment').onclick = async () => {
     const val = document.getElementById('newPayment').value.trim();
     if (!val) return;
     state.payments.push(val);
-    await savePayments(state.payments);
-    document.getElementById('newPayment').value = '';
-    renderPaymentsList(state.payments, handleRemovePayment);
+    try {
+      await savePayments(state.payments);
+      document.getElementById('newPayment').value = '';
+      renderPaymentsList(state.payments, handleRemovePayment);
+    } catch (e) {
+      console.error('Payment save failed:', e);
+      state.payments.pop();
+      showToast("Erro ao guardar pagamento. Tente novamente.");
+    }
   };
 
   document.getElementById('addSupplier').onclick = async () => {
@@ -754,10 +771,16 @@ function setupEventListeners() {
     const contact = document.getElementById('newSupplierContact').value.trim();
     if (!name) return;
     state.suppliers.push({ name, contact });
-    await saveSuppliers(state.suppliers);
-    document.getElementById('newSupplierName').value = '';
-    document.getElementById('newSupplierContact').value = '';
-    renderSuppliersList(state.suppliers, handleRemoveSupplier);
+    try {
+      await saveSuppliers(state.suppliers);
+      document.getElementById('newSupplierName').value = '';
+      document.getElementById('newSupplierContact').value = '';
+      renderSuppliersList(state.suppliers, handleRemoveSupplier);
+    } catch (e) {
+      console.error('Supplier save failed:', e);
+      state.suppliers.pop();
+      showToast("Erro ao guardar fornecedor. Tente novamente.");
+    }
   };
 
 }
