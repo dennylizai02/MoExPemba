@@ -444,7 +444,14 @@ function setupEventListeners() {
     if (lastFocusedElement) lastFocusedElement.focus();
   };
   document.getElementById('pmAdd').onclick = () => {
-    handleAddToCart(state.currentProductId, state.selectedSize, state.selectedColor);
+    const p = state.products.find(pr => pr.id === state.currentProductId);
+    if (!p) return;
+    const lineKey = state.currentProductId + '|' + (state.selectedSize || '') + '|' + (state.selectedColor || '');
+    const line = state.cart.find(l => l.key === lineKey);
+    if (line) line.qty++;
+    else state.cart.push({ key: lineKey, id: state.currentProductId, qty: 1, size: state.selectedSize || null, color: state.selectedColor || null });
+    renderCartState();
+    showToast("Adicionado ao carrinho");
     document.getElementById('productModal').classList.remove('show');
   };
 
