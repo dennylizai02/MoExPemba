@@ -1,4 +1,5 @@
 import { fmt, esc } from './utils.js';
+import { logout } from './auth.js';
 
 const STATUS_OPTIONS = ['novo', 'em curso', 'entregue', 'cancelado'];
 
@@ -255,7 +256,19 @@ export function updateHeaderUI(user) {
       <span class="user-name">${user.name}</span>
       ${isAdmin ? '<span class="user-role">Lojista</span>' : ''}
     </div>
+    ${!isAdmin ? '<button class="logout-btn" id="userLogout">Sair</button>' : ''}
   `;
+  if (!isAdmin) {
+    document.getElementById('userLogout').onclick = async () => {
+      await logout();
+      document.getElementById('adminView').style.display = 'none';
+      document.getElementById('publicView').style.display = 'none';
+      wrap.style.display = 'none';
+      wrap.innerHTML = '';
+      cartBtn.style.display = 'none';
+      document.getElementById('authView').style.display = '';
+    };
+  }
   openAdminBtn.style.display = isAdmin ? '' : 'none';
   cartBtn.style.display = isAdmin ? 'none' : '';
 }
