@@ -92,7 +92,7 @@ export function renderAdminProductList(products, onEdit, onDelete) {
   wrap.querySelectorAll('[data-del]').forEach(b => b.onclick = () => onDelete(b.dataset.del));
 }
 
-export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
+export function renderAdminOrderList(orders, onStatusChange, statusFilter, products, clients) {
   const wrap = document.getElementById('adminOrderList');
   if (!wrap) return;
   const filtered = statusFilter && statusFilter !== 'all'
@@ -106,10 +106,21 @@ export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
     const statusBtns = STATUS_OPTIONS.map(s =>
       `<button class="status-btn${o.status === s ? ' active' : ''}" data-status="${s}" data-id="${o.id}" style="${STATUS_COLORS[s]}">${s}</button>`
     ).join('');
+    const itemsHtml = o.items.map(i => {
+      let sellerTag = '';
+      if (products && clients) {
+        const product = products.find(p => p.name === i.name);
+        if (product && product.created_by) {
+          const seller = clients.find(c => c.id === product.created_by);
+          if (seller) sellerTag = `<span class="order-seller">${esc(seller.name)}</span>`;
+        }
+      }
+      return `${i.qty}x ${esc(i.name)}${sellerTag}${i.size ? ' (' + esc(i.size) + ')' : ''}${i.color ? ' · ' + esc(i.color) : ''}`;
+    }).join(', ');
     div.innerHTML = `
       <div class="oh"><span>${esc(o.name)} · ${esc(o.phone)}</span><span class="mono">${fmt(o.total)}</span></div>
       <div class="order-status-row">${statusBtns}</div>
-      <div class="items">${o.items.map(i => `${i.qty}x ${esc(i.name)}${i.size ? ' (' + esc(i.size) + ')' : ''}${i.color ? ' · ' + esc(i.color) : ''}`).join(', ')}</div>
+      <div class="items">${itemsHtml}</div>
       <div style="margin:4px 0;font-size:0.82rem;">${esc(o.addr)}${o.note ? ' — ' + esc(o.note) : ''}</div>
       <div class="meta">${o.date}</div>`;
     wrap.appendChild(div);

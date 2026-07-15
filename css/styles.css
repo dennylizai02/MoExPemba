@@ -550,6 +550,16 @@ header.site{
 .order-item .oh{ display:flex; justify-content:space-between; font-weight:700; margin-bottom:6px; }
 .order-item .items{ margin:6px 0; color:rgba(18,48,46,0.7); }
 .order-item .meta{ font-size:0.75rem; color:rgba(18,48,46,0.65); }
+.order-seller{
+  display:inline-block;
+  font-size:0.7rem;
+  background:rgba(59,130,246,0.12);
+  color:#3b82f6;
+  padding:1px 6px;
+  border-radius:3px;
+  margin-left:4px;
+  font-weight:600;
+}
 .tabs{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
 .tab{
   background:var(--paper); border:none; padding:10px 18px; border-radius:7px;

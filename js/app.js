@@ -205,7 +205,8 @@ function openProductModalHandler(id) {
 }
 
 async function loadClients() {
-  if (!isCurrentUserAdmin()) { state.clients = []; return; }
+  const user = getCurrentUser();
+  if (!user || (!isCurrentUserAdmin() && !isCurrentUserSeller())) { state.clients = []; return; }
   const { data } = await supabase.from('profiles').select('id, name, phone, email, role, created_at').order('created_at', { ascending: false });
   state.clients = data || [];
 }
@@ -228,7 +229,7 @@ function renderAdminState() {
   renderDashboard(myOrders, myProducts, isSeller ? [] : state.customRequests);
   renderDashboardRecentOrders(myOrders);
   renderAdminProductList(myProducts, handleEditProduct, handleDeleteProduct);
-  renderAdminOrderList(myOrders, handleOrderStatusChange, state.orderFilter);
+  renderAdminOrderList(myOrders, handleOrderStatusChange, state.orderFilter, state.products, state.clients);
   renderAdminRequestList(isSeller ? [] : state.customRequests);
   renderAdminClientList(isSeller ? [] : state.clients);
   renderZonesList(state.zones, handleRemoveZone);
@@ -723,7 +724,11 @@ function setupEventListeners() {
       document.querySelectorAll('[data-status-filter]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       state.orderFilter = btn.dataset.statusFilter;
-      renderAdminOrderList(state.orders, handleOrderStatusChange, state.orderFilter);
+      const user = getCurrentUser();
+      const isSeller = user && user.role === 'seller';
+      const myProducts = isSeller ? state.products.filter(p => p.created_by === user.id) : state.products;
+      const myOrders = isSeller ? state.orders.filter(o => o.items && o.items.some(i => myProducts.some(p => p.name === i.name))) : state.orders;
+      renderAdminOrderList(myOrders, handleOrderStatusChange, state.orderFilter, state.products, state.clients);
     };
   });
 
