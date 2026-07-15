@@ -684,6 +684,7 @@ function setupEventListeners() {
 
   document.querySelectorAll('.admin-nav-btn').forEach(t => {
     t.onclick = () => {
+      if (t.id === 'adLogout') return;
       document.querySelectorAll('.admin-nav-btn').forEach(x => x.classList.remove('active'));
       t.classList.add('active');
       const tab = t.dataset.tab;
