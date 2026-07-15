@@ -210,6 +210,12 @@ export function showAuthView() {
   document.getElementById('authResetForm').style.display = 'none';
   document.getElementById('loginError').classList.remove('show');
   document.getElementById('registerError').classList.remove('show');
+  const userInfo = document.getElementById('userInfo');
+  if (userInfo) { userInfo.style.display = 'none'; userInfo.innerHTML = ''; }
+  const openAdminBtn = document.getElementById('openAdmin');
+  if (openAdminBtn) openAdminBtn.style.display = 'none';
+  const cartBtn = document.getElementById('openCart');
+  if (cartBtn) cartBtn.style.display = 'none';
 }
 
 export function showPublicView() {
