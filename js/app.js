@@ -20,7 +20,7 @@ import {
 
 const state = {
   products: [], orders: [], customRequests: [], favorites: [],
-  zones: [], payments: [], cart: [], activeCategory: "Todos",
+  zones: [], payments: [], suppliers: [], cart: [], activeCategory: "Todos",
   currentProductId: null, selectedSize: null, selectedColor: null,
   clients: [], orderFilter: 'all'
 };
@@ -32,7 +32,7 @@ function showAuthForm(name) {
   ['login','register','forgot','reset'].forEach(f => {
     document.getElementById('auth' + f.charAt(0).toUpperCase() + f.slice(1) + 'Form').style.display = f === name ? '' : 'none';
   });
-  ['loginError','registerError','forgotError'].forEach(id =>
+  ['loginError','registerError','forgotError','resetError'].forEach(id =>
     document.getElementById(id).classList.remove('show'));
 }
 
@@ -103,7 +103,7 @@ function applySorting(list) {
     case 'price-asc': sorted.sort((a, b) => a.price - b.price); break;
     case 'price-desc': sorted.sort((a, b) => b.price - a.price); break;
     case 'sold-desc': sorted.sort((a, b) => (b.sold || 0) - (a.sold || 0)); break;
-    case 'newest': sorted.sort((a, b) => (b.id > a.id ? 1 : -1)); break;
+    case 'newest': sorted.sort((a, b) => (parseInt(b.id.slice(1), 36) || 0) - (parseInt(a.id.slice(1), 36) || 0)); break;
   }
   return sorted;
 }
@@ -141,9 +141,14 @@ function renderGrid() {
     emptyState.innerHTML = `
       <p style="margin-bottom:6px;">Não encontramos exatamente isso, mas talvez goste destes:</p>
       <div style="display:flex;gap:16px;justify-content:center;margin:8px 0;">
-        <button class="btn-primary mango" style="width:auto;padding:11px 20px;" onclick="document.getElementById('requestModal').classList.add('show')">Descrever o produto que procuro</button>
+        <button class="btn-primary mango" id="openReqModal" style="width:auto;padding:11px 20px;">Descrever o produto que procuro</button>
         <button class="btn-secondary" style="width:auto;padding:11px 20px;margin-top:0;" onclick="window.open('https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Não encontrei na página o produto que procuro, pode me ajudar?')}', '_blank')">Falar com o lojista</button>
       </div>`;
+    document.getElementById('openReqModal').onclick = () => {
+      lastFocusedElement = document.activeElement;
+      document.getElementById('requestModal').classList.add('show');
+      trapFocus(document.getElementById('requestModal'));
+    };
     renderProductCards(related, grid, handleAddToCart, openProductModalHandler, handleToggleFavorite, state.favorites);
     return;
   }
@@ -267,6 +272,7 @@ function getCheckoutFields() {
 function buildOrderSummaryText() {
   return state.cart.map(l => {
     const p = state.products.find(pr => pr.id === l.id);
+    if (!p) return `${l.qty}x [produto indisponível]`;
     const variant = [l.size, l.color].filter(Boolean).join(' · ');
     return `${l.qty}x ${p.name}${variant ? ' (' + variant + ')' : ''} - ${fmt(p.price * l.qty)}`;
   }).join('\n');
@@ -294,7 +300,7 @@ async function handleRegisterOrder(name, phone, addr, note) {
     name, phone, addr, note,
     items: state.cart.map(l => {
       const p = state.products.find(pr => pr.id === l.id);
-      return { name: p.name, qty: l.qty, price: p.price, size: l.size, color: l.color };
+      return { name: p ? p.name : '[produto indisponível]', qty: l.qty, price: p ? p.price : 0, size: l.size, color: l.color };
     }),
     total: cartTotalValue(state.cart, state.products),
     status: "novo"
@@ -396,7 +402,7 @@ async function init() {
   try {
     const data = await loadData();
     Object.assign(state, data);
-    loadClients().then(clients => { state.clients = clients; });
+    loadClients();
 
     if (isRecoverySession()) {
       window.history.replaceState(null, '', window.location.pathname);
@@ -451,11 +457,16 @@ function setupEventListeners() {
     if (!name || !comment) { showToast("Preencha nome e comentário"); return; }
     p.reviews = p.reviews || [];
     p.reviews.unshift({ name, rating, comment, date: new Date().toLocaleDateString('pt-PT') });
-    await saveProducts(state.products);
-    document.getElementById('rvName').value = '';
-    document.getElementById('rvComment').value = '';
-    renderReviews(p);
-    showToast("Avaliação enviada, obrigado!");
+    try {
+      await saveProducts(state.products);
+      document.getElementById('rvName').value = '';
+      document.getElementById('rvComment').value = '';
+      renderReviews(p);
+      showToast("Avaliação enviada, obrigado!");
+    } catch (e) {
+      console.error('Review save failed:', e);
+      showToast("Erro ao guardar avaliação. Tente novamente.");
+    }
   };
 
   document.getElementById('pmShare').onclick = () => {
@@ -510,7 +521,7 @@ function setupEventListeners() {
     const { name, phone, addr, note } = fields;
     btn.disabled = true; btn.textContent = 'A registar...';
     const saved = await handleRegisterOrder(name, phone, addr, note);
-    btn.disabled = false; btn.textContent = 'Registar encomenda';
+    btn.disabled = false; btn.textContent = 'Só registar o pedido';
     if (!saved) return;
     showToast("Pedido registado! Vamos entrar em contacto.");
     finishCheckout();
@@ -535,13 +546,19 @@ function setupEventListeners() {
     if (!name || !phone || !desc) { showToast("Preencha todos os campos"); return; }
     btn.disabled = true; btn.textContent = 'A enviar...';
     state.customRequests.unshift({ id: uid(), name, phone, desc, date: new Date().toLocaleString('pt-PT') });
-    await saveRequests(state.customRequests);
-    btn.disabled = false; btn.textContent = 'Enviar pedido';
-    document.getElementById('reqName').value = '';
-    document.getElementById('reqPhone').value = '';
-    document.getElementById('reqDesc').value = '';
-    document.getElementById('requestModal').classList.remove('show');
-    showToast("Pedido enviado! Vamos procurar para si.");
+    try {
+      await saveRequests(state.customRequests);
+      btn.disabled = false; btn.textContent = 'Enviar pedido';
+      document.getElementById('reqName').value = '';
+      document.getElementById('reqPhone').value = '';
+      document.getElementById('reqDesc').value = '';
+      document.getElementById('requestModal').classList.remove('show');
+      showToast("Pedido enviado! Vamos procurar para si.");
+    } catch (e) {
+      console.error('Request save failed:', e);
+      btn.disabled = false; btn.textContent = 'Enviar pedido';
+      showToast("Erro ao enviar pedido. Tente novamente.");
+    }
   };
 
   document.getElementById('showRegister').onclick = () => showAuthForm('register');
@@ -562,6 +579,9 @@ function setupEventListeners() {
     render();
   };
   document.getElementById('authLoginPass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authLoginBtn').click();
+  });
+  document.getElementById('authLoginEmail').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('authLoginBtn').click();
   });
 
@@ -591,6 +611,18 @@ function setupEventListeners() {
   document.getElementById('authRegPass2').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('authRegBtn').click();
   });
+  document.getElementById('authRegName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authRegBtn').click();
+  });
+  document.getElementById('authRegEmail').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authRegBtn').click();
+  });
+  document.getElementById('authRegPhone').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authRegBtn').click();
+  });
+  document.getElementById('authRegPass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authRegBtn').click();
+  });
 
   document.getElementById('authForgotBtn').onclick = async () => {
     const btn = document.getElementById('authForgotBtn');
@@ -604,6 +636,9 @@ function setupEventListeners() {
     document.getElementById('forgotError').style.background = 'rgba(28,110,110,0.1)';
     document.getElementById('forgotError').style.color = 'var(--teal)';
   };
+  document.getElementById('authForgotEmail').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authForgotBtn').click();
+  });
 
   document.getElementById('authResetBtn').onclick = async () => {
     const pass = document.getElementById('authResetPass').value;
@@ -618,6 +653,12 @@ function setupEventListeners() {
     navigateTo('public');
     render();
   };
+  document.getElementById('authResetPass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authResetBtn').click();
+  });
+  document.getElementById('authResetPass2').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('authResetBtn').click();
+  });
 
   document.getElementById('openAdmin').onclick = () => {
     if (!getCurrentUser() || !isCurrentUserAdmin()) { showToast("Acesso não autorizado"); return; }
@@ -627,9 +668,9 @@ function setupEventListeners() {
     render();
   };
 
-  document.getElementById('adLogout').onclick = () => {
+  document.getElementById('adLogout').onclick = async () => {
     document.getElementById('adminView').style.display = 'none';
-    logout();
+    await logout();
     navigateTo('auth');
     render();
   };
