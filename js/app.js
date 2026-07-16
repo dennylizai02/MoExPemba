@@ -3,7 +3,7 @@ import { fmt, uid, showToast } from './utils.js';
 import {
   registerUser, loginUser, logout, restoreSession, getCurrentUser,
   isCurrentUserAdmin, isCurrentUserSeller, canAccessPanel,
-  requestPasswordReset, completePasswordReset,
+  requestPasswordReset, completePasswordReset, resendConfirmation,
   isRecoverySession
 } from './auth.js';
 import {
@@ -30,10 +30,10 @@ let searchTimeout = null;
 let lastFocusedElement = null;
 
 function showAuthForm(name) {
-  ['login','register','forgot','reset'].forEach(f => {
+  ['login','register','forgot','reset','confirm'].forEach(f => {
     document.getElementById('auth' + f.charAt(0).toUpperCase() + f.slice(1) + 'Form').style.display = f === name ? '' : 'none';
   });
-  ['loginError','registerError','forgotError','resetError'].forEach(id =>
+  ['loginError','registerError','forgotError','resetError','confirmError'].forEach(id =>
     document.getElementById(id).classList.remove('show'));
 }
 
@@ -429,6 +429,7 @@ async function init() {
       document.getElementById('authLoginForm').style.display = 'none';
       document.getElementById('authRegisterForm').style.display = 'none';
       document.getElementById('authForgotForm').style.display = 'none';
+      document.getElementById('authConfirmForm').style.display = 'none';
       document.getElementById('authResetForm').style.display = '';
     } else if (await restoreSession()) {
       const user = getCurrentUser();
@@ -591,6 +592,22 @@ function setupEventListeners() {
   document.getElementById('showLogin').onclick = () => showAuthForm('login');
   document.getElementById('showForgotPassword').onclick = () => showAuthForm('forgot');
   document.getElementById('showLoginFromForgot').onclick = () => showAuthForm('login');
+  document.getElementById('showLoginFromConfirm').onclick = () => showAuthForm('login');
+
+  document.getElementById('authResendBtn').onclick = async () => {
+    const btn = document.getElementById('authResendBtn');
+    const email = document.getElementById('confirmEmailAddr').textContent.trim();
+    btn.disabled = true; btn.textContent = 'A enviar...';
+    const result = await resendConfirmation(email);
+    btn.disabled = false; btn.textContent = 'Reenviar email de confirmação';
+    if (result.error) {
+      showAuthError('confirmError', result.error);
+    } else {
+      showAuthError('confirmError', 'Email reenviado! Verifique a sua caixa de entrada.');
+      document.getElementById('confirmError').style.background = 'rgba(28,110,110,0.1)';
+      document.getElementById('confirmError').style.color = 'var(--teal)';
+    }
+  };
 
   document.getElementById('authLoginBtn').onclick = async () => {
     const btn = document.getElementById('authLoginBtn');
@@ -600,7 +617,17 @@ function setupEventListeners() {
     btn.disabled = true; btn.textContent = 'A entrar...';
     const result = await loginUser(email, pass);
     btn.disabled = false; btn.textContent = 'Entrar';
-    if (result.error) { showAuthError('loginError', result.error); return; }
+    if (result.error) {
+      if (result.error.toLowerCase().includes('email not confirmed')) {
+        showAuthForm('confirm');
+        document.getElementById('confirmEmailAddr').textContent = email;
+        document.getElementById('confirmError').textContent = 'Email não confirmado. Verifique a sua caixa de entrada.';
+        document.getElementById('confirmError').classList.add('show');
+      } else {
+        showAuthError('loginError', result.error);
+      }
+      return;
+    }
     navigateTo(canAccessPanel() ? 'admin' : 'public');
     render();
   };
@@ -625,9 +652,8 @@ function setupEventListeners() {
     btn.disabled = false; btn.textContent = 'Criar conta';
     if (result.error) { showAuthError('registerError', result.error); return; }
     if (result.confirmEmail) {
-      showAuthError('registerError', 'Conta criada! Verifique o seu email para confirmar o registo.');
-      document.getElementById('registerError').style.background = 'rgba(28,110,110,0.1)';
-      document.getElementById('registerError').style.color = 'var(--teal)';
+      showAuthForm('confirm');
+      document.getElementById('confirmEmailAddr').textContent = result.email;
     } else {
       navigateTo('public');
       render();

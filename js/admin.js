@@ -221,6 +221,7 @@ export function showAuthView() {
   document.getElementById('authRegisterForm').style.display = 'none';
   document.getElementById('authForgotForm').style.display = 'none';
   document.getElementById('authResetForm').style.display = 'none';
+  document.getElementById('authConfirmForm').style.display = 'none';
   document.getElementById('loginError').classList.remove('show');
   document.getElementById('registerError').classList.remove('show');
   const userInfo = document.getElementById('userInfo');

@@ -24,9 +24,10 @@ CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = id);
 
--- Permitir lookup por phone (para login com telefone)
+-- Permitir lookup por phone (para login com telefone) — inclui anon
 CREATE POLICY "Allow phone lookup for login"
   ON profiles FOR SELECT
+  TO anon, authenticated
   USING (true);
 
 -- 3. Trigger — criar profile automaticamente ao registar

@@ -89,6 +89,16 @@
         <div class="auth-toggle">Já tem conta? <a id="showLogin">Entrar</a></div>
       </div>
 
+      <!-- Confirmação de email -->
+      <div class="auth-form" id="authConfirmForm" style="display:none;">
+        <div class="auth-error" id="confirmError"></div>
+        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Enviámos um email de confirmação para:</p>
+        <p id="confirmEmailAddr" style="font-weight:700;color:var(--teal);margin:8px 0 16px;"></p>
+        <p style="font-size:0.82rem;color:rgba(18,48,46,0.55);margin-bottom:14px;">Clique no link no email para ativar a sua conta. Verifique também a pasta de spam.</p>
+        <button class="btn-primary" id="authResendBtn" style="background:var(--teal-light);color:var(--teal);">Reenviar email de confirmação</button>
+        <div class="auth-toggle" style="margin-top:12px;"><a id="showLoginFromConfirm">Voltar ao login</a></div>
+      </div>
+
       <!-- Esqueci a senha -->
       <div class="auth-form" id="authForgotForm" style="display:none;">
         <div class="auth-error" id="forgotError"></div>
