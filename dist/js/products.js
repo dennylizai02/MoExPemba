@@ -9,7 +9,7 @@ export function renderProductCards(list, container, onAdd, onView, onFav, favori
     card.innerHTML = `
       ${p.badge ? `<div class="tag-badge">${esc(p.badge)}</div>` : ''}
       <button class="fav-btn ${isFav ? 'active' : ''}" data-fav="${p.id}">${isFav ? '♥' : '♡'}</button>
-      <img class="tag-img" src="${esc(p.img)}" alt="${esc(p.name)}">
+      <img class="tag-img" src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='https://picsum.photos/seed/fallback/400/400'">
       <div class="tag-body">
         <div class="tag-cat">${esc(p.category)}</div>
         <div class="tag-name">${esc(p.name)}</div>
@@ -37,8 +37,8 @@ export function renderProductModal(p, payments, zones) {
   document.getElementById('pmEntrega').textContent = p.entrega ? `🚚 Entrega estimada: ${p.entrega}` : '';
   document.getElementById('pmSold').textContent = p.sold ? `${p.sold} pessoas já compraram este produto` : '';
   document.getElementById('pmPrice').textContent = fmt(p.price);
-  document.getElementById('pmPayments').innerHTML = payments.map(pay => `<span class="info-pill">${pay}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
-  document.getElementById('pmZones').innerHTML = zones.map(z => `<span class="info-pill">${z}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
+  document.getElementById('pmPayments').innerHTML = payments.map(pay => `<span class="info-pill">${esc(pay)}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
+  document.getElementById('pmZones').innerHTML = zones.map(z => `<span class="info-pill">${esc(z)}</span>`).join('') || '<span style="font-size:0.8rem;color:rgba(18,48,46,0.5);">A definir</span>';
 
   const allImages = [p.img, ...(p.images || [])];
   const thumbsWrap = document.getElementById('pmThumbs');
@@ -98,5 +98,5 @@ export function renderReviews(p) {
 export function matchesSearch(p, term) {
   if (!term) return true;
   const hay = `${p.name} ${p.category || ''} ${p.desc || ''} ${p.material || ''}`.toLowerCase();
-  return term.split(/\s+/).every(word => word.length > 1 && hay.includes(word));
+  return term.split(/\s+/).every(word => word.length >= 1 && hay.includes(word));
 }

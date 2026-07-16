@@ -3,7 +3,7 @@ export function fmt(n) {
 }
 
 export function uid() {
-  return 'p' + Date.now() + Math.floor(Math.random() * 1000);
+  return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
 const escapeMap = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };

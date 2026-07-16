@@ -8,6 +8,15 @@ export function isCurrentUserAdmin() {
   return currentUserProfile && currentUserProfile.role === 'admin';
 }
 
+export function isCurrentUserSeller() {
+  return currentUserProfile && currentUserProfile.role === 'seller';
+}
+
+export function canAccessPanel() {
+  const role = currentUserProfile?.role;
+  return role === 'admin' || role === 'seller';
+}
+
 async function fetchProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
@@ -33,7 +42,7 @@ export async function registerUser(name, email, phone, password) {
   if (data.user && data.session) {
     currentUserProfile = await fetchProfile(data.user.id);
   }
-  return { ok: true, confirmEmail: !data.session };
+  return { ok: true, confirmEmail: !data.session, email };
 }
 
 export async function loginUser(identifier, password) {
@@ -99,9 +108,24 @@ export async function completePasswordReset(newPassword) {
   return { ok: true };
 }
 
+export async function resendConfirmation(identifier) {
+  let email = identifier;
+  const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
+  if (isPhone) {
+    const cleanPhone = identifier.replace(/\D/g, '');
+    const { data } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('phone', cleanPhone)
+      .maybeSingle();
+    if (!data || !data.email) return { error: "Telefone não encontrado" };
+    email = data.email;
+  }
+  const { error } = await supabase.auth.resend({ email, type: 'signup' });
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
 export function isRecoverySession() {
   return window.__recoveryHash !== '' || window.location.hash.includes('type=recovery');
 }
-
-export async function loadUsers() {}
-export async function seedAdmin() {}

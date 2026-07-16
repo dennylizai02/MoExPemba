@@ -35,6 +35,7 @@ header.site{
   align-items:center;
   justify-content:space-between;
   gap:16px;
+  flex-wrap:wrap;
   position:sticky;
   top:0;
   z-index:40;
@@ -236,7 +237,6 @@ header.site{
 .tag-delivery{
   font-size:0.74rem;
   color:var(--teal-dark);
-  opacity:0.75;
   margin-top:4px;
 }
 .tag-sold{
@@ -486,7 +486,7 @@ header.site{
 .stat-card.accent .stat-value{ color:var(--ink); }
 .stat-label{
   font-size:0.75rem;
-  color:rgba(18,48,46,0.55);
+  color:rgba(18,48,46,0.7);
   margin-top:4px;
 }
 .stat-card.accent .stat-label{ color:rgba(18,48,46,0.7); }
@@ -549,7 +549,17 @@ header.site{
 }
 .order-item .oh{ display:flex; justify-content:space-between; font-weight:700; margin-bottom:6px; }
 .order-item .items{ margin:6px 0; color:rgba(18,48,46,0.7); }
-.order-item .meta{ font-size:0.75rem; color:rgba(18,48,46,0.5); }
+.order-item .meta{ font-size:0.75rem; color:rgba(18,48,46,0.65); }
+.order-seller{
+  display:inline-block;
+  font-size:0.7rem;
+  background:rgba(59,130,246,0.12);
+  color:#3b82f6;
+  padding:1px 6px;
+  border-radius:3px;
+  margin-left:4px;
+  font-weight:600;
+}
 .tabs{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
 .tab{
   background:var(--paper); border:none; padding:10px 18px; border-radius:7px;
@@ -585,7 +595,7 @@ header.site{
 .stars{ color:var(--mango); letter-spacing:1px; }
 
 footer.site{
-  text-align:center; padding:30px; font-size:0.8rem; color:rgba(18,48,46,0.55);
+  text-align:center; padding:30px; font-size:0.8rem; color:rgba(18,48,46,0.65);
 }
 footer.site button{ background:none;border:none;text-decoration:underline;color:inherit;font-size:0.8rem; }
 
@@ -724,6 +734,10 @@ footer.site button{ background:none;border:none;text-decoration:underline;color:
   padding:2px 7px;
   border-radius:4px;
 }
+.user-badge .user-role.seller{
+  background:#3b82f6;
+  color:#fff;
+}
 .logout-btn{
   background:none;
   border:1px solid rgba(251,247,238,0.3);
@@ -751,14 +765,14 @@ footer.site button{ background:none;border:none;text-decoration:underline;color:
   }
   .admin-nav{
     flex-direction:row;
-    overflow-x:auto;
+    flex-wrap:wrap;
     gap:0;
-    padding:0;
+    padding:8px;
   }
   .admin-nav-btn{
     border-left:none;
     border-bottom:3px solid transparent;
-    padding:10px 14px;
+    padding:8px 12px;
     white-space:nowrap;
     font-size:0.78rem;
     text-align:center;
@@ -805,7 +819,14 @@ footer.site button{ background:none;border:none;text-decoration:underline;color:
 }
 @keyframes spin{ to{ transform:rotate(360deg); } }
 .loader-text{
-  font-family:var(--font-display);
+  font-family:'Fraunces', serif;
   font-size:1.1rem; font-weight:600;
   color:var(--teal-dark);
+}
+
+:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+button:focus-visible { outline:2px solid var(--mango); outline-offset:2px; }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
 }

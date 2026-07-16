@@ -1,4 +1,5 @@
 import { fmt, esc } from './utils.js';
+import { logout } from './auth.js';
 
 const STATUS_OPTIONS = ['novo', 'em curso', 'entregue', 'cancelado'];
 
@@ -79,7 +80,7 @@ export function renderAdminProductList(products, onEdit, onDelete) {
     const row = document.createElement('div');
     row.className = 'admin-list-item';
     row.innerHTML = `
-      <img src="${esc(p.img)}">
+      <img src="${esc(p.img)}" loading="lazy">
       <div class="info"><b>${esc(p.name)}</b><br><span class="mono">${fmt(p.price)}</span> · ${esc(p.category) || '—'} · ${p.sold || 0} vendidos</div>
       <div class="actions">
         <button data-edit="${p.id}">Editar</button>
@@ -91,7 +92,7 @@ export function renderAdminProductList(products, onEdit, onDelete) {
   wrap.querySelectorAll('[data-del]').forEach(b => b.onclick = () => onDelete(b.dataset.del));
 }
 
-export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
+export function renderAdminOrderList(orders, onStatusChange, statusFilter, products, clients) {
   const wrap = document.getElementById('adminOrderList');
   if (!wrap) return;
   const filtered = statusFilter && statusFilter !== 'all'
@@ -99,23 +100,33 @@ export function renderAdminOrderList(orders, onStatusChange, statusFilter) {
     : orders;
   if (filtered.length === 0) { wrap.innerHTML = '<p style="color:rgba(18,48,46,0.55);">Nenhuma encomenda encontrada.</p>'; return; }
   wrap.innerHTML = "";
-  filtered.forEach((o, i) => {
-    const originalIndex = orders.indexOf(o);
+  filtered.forEach((o) => {
     const div = document.createElement('div');
     div.className = 'order-item';
     const statusBtns = STATUS_OPTIONS.map(s =>
-      `<button class="status-btn${o.status === s ? ' active' : ''}" data-status="${s}" data-idx="${originalIndex}" style="${STATUS_COLORS[s]}">${s}</button>`
+      `<button class="status-btn${o.status === s ? ' active' : ''}" data-status="${s}" data-id="${o.id}" style="${STATUS_COLORS[s]}">${s}</button>`
     ).join('');
+    const itemsHtml = o.items.map(i => {
+      let sellerTag = '';
+      if (products && clients) {
+        const product = products.find(p => p.name === i.name);
+        if (product && product.created_by) {
+          const seller = clients.find(c => c.id === product.created_by);
+          if (seller) sellerTag = `<span class="order-seller">${esc(seller.name)}</span>`;
+        }
+      }
+      return `${i.qty}x ${esc(i.name)}${sellerTag}${i.size ? ' (' + esc(i.size) + ')' : ''}${i.color ? ' · ' + esc(i.color) : ''}`;
+    }).join(', ');
     div.innerHTML = `
       <div class="oh"><span>${esc(o.name)} · ${esc(o.phone)}</span><span class="mono">${fmt(o.total)}</span></div>
       <div class="order-status-row">${statusBtns}</div>
-      <div class="items">${o.items.map(i => `${i.qty}x ${esc(i.name)}${i.size ? ' (' + esc(i.size) + ')' : ''}${i.color ? ' · ' + esc(i.color) : ''}`).join(', ')}</div>
+      <div class="items">${itemsHtml}</div>
       <div style="margin:4px 0;font-size:0.82rem;">${esc(o.addr)}${o.note ? ' — ' + esc(o.note) : ''}</div>
       <div class="meta">${o.date}</div>`;
     wrap.appendChild(div);
   });
   wrap.querySelectorAll('.status-btn').forEach(b => {
-    b.onclick = () => onStatusChange(parseInt(b.dataset.idx), b.dataset.status);
+    b.onclick = () => onStatusChange(b.dataset.id, b.dataset.status);
   });
 }
 
@@ -145,6 +156,8 @@ export function renderAdminClientList(clients) {
     row.className = 'admin-list-item';
     const roleBadge = c.role === 'admin'
       ? '<span class="user-role" style="font-size:0.6rem;">Admin</span>'
+      : c.role === 'seller'
+      ? '<span class="user-role seller" style="font-size:0.6rem;">Vendedor</span>'
       : '';
     row.innerHTML = `
       <div class="client-avatar">${esc((c.name || '?')[0].toUpperCase())}</div>
@@ -165,7 +178,7 @@ export function renderZonesList(zones, onChange) {
   zones.forEach((z, i) => {
     const row = document.createElement('div');
     row.className = 'zone-row';
-    row.innerHTML = `<span class="info-pill" style="flex:1;">${z}</span><button data-rmzone="${i}">Remover</button>`;
+    row.innerHTML = `<span class="info-pill" style="flex:1;">${esc(z)}</span><button data-rmzone="${i}">Remover</button>`;
     wrap.appendChild(row);
   });
   wrap.querySelectorAll('[data-rmzone]').forEach(b => b.onclick = () => onChange(parseInt(b.dataset.rmzone)));
@@ -179,7 +192,7 @@ export function renderPaymentsList(payments, onChange) {
   payments.forEach((p, i) => {
     const row = document.createElement('div');
     row.className = 'pay-row';
-    row.innerHTML = `<span class="info-pill" style="flex:1;">${p}</span><button data-rmpay="${i}">Remover</button>`;
+    row.innerHTML = `<span class="info-pill" style="flex:1;">${esc(p)}</span><button data-rmpay="${i}">Remover</button>`;
     wrap.appendChild(row);
   });
   wrap.querySelectorAll('[data-rmpay]').forEach(b => b.onclick = () => onChange(parseInt(b.dataset.rmpay)));
@@ -208,8 +221,15 @@ export function showAuthView() {
   document.getElementById('authRegisterForm').style.display = 'none';
   document.getElementById('authForgotForm').style.display = 'none';
   document.getElementById('authResetForm').style.display = 'none';
+  document.getElementById('authConfirmForm').style.display = 'none';
   document.getElementById('loginError').classList.remove('show');
   document.getElementById('registerError').classList.remove('show');
+  const userInfo = document.getElementById('userInfo');
+  if (userInfo) { userInfo.style.display = 'none'; userInfo.innerHTML = ''; }
+  const openAdminBtn = document.getElementById('openAdmin');
+  if (openAdminBtn) openAdminBtn.style.display = 'none';
+  const cartBtn = document.getElementById('openCart');
+  if (cartBtn) cartBtn.style.display = 'none';
 }
 
 export function showPublicView() {
@@ -224,6 +244,8 @@ export function showPublicView() {
 }
 
 export function showAdminView() {
+  const user = arguments.length > 0 ? arguments[0] : null;
+  const isSeller = user && user.role === 'seller';
   document.getElementById('authView').style.display = 'none';
   document.getElementById('adminView').style.display = '';
   document.getElementById('adminView').querySelector('.admin-sidebar').style.display = '';
@@ -232,7 +254,21 @@ export function showAdminView() {
   content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
   document.getElementById('publicView').style.display = 'none';
   document.querySelector('footer.site').style.display = 'none';
+
   document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+
+  const adminOnlyTabs = ['clients', 'requests', 'settings', 'suppliers'];
+  document.querySelectorAll('.admin-nav-btn[data-tab]').forEach(btn => {
+    const tab = btn.dataset.tab;
+    if (isSeller && adminOnlyTabs.includes(tab)) {
+      btn.style.display = 'none';
+    } else {
+      btn.style.display = '';
+      if (isSeller && tab === 'orders') btn.textContent = 'As Minhas Encomendas';
+      else if (!isSeller && tab === 'orders') btn.textContent = 'Encomendas';
+    }
+  });
+
   const dashboardBtn = document.querySelector('[data-tab="dashboard"]');
   if (dashboardBtn) dashboardBtn.classList.add('active');
   document.getElementById('tabDashboard').style.display = 'block';
@@ -250,15 +286,30 @@ export function updateHeaderUI(user) {
     return;
   }
   const isAdmin = user.role === 'admin';
+  const isSeller = user.role === 'seller';
+  const hasPanel = isAdmin || isSeller;
+  const roleBadge = isAdmin ? 'Lojista' : isSeller ? 'Vendedor' : '';
   wrap.style.display = 'flex';
   wrap.innerHTML = `
     <div class="user-badge">
       <span class="user-name">${user.name}</span>
-      ${isAdmin ? '<span class="user-role">Lojista</span>' : ''}
+      ${roleBadge ? `<span class="user-role ${isSeller ? 'seller' : ''}">${roleBadge}</span>` : ''}
     </div>
+    ${!hasPanel ? '<button class="logout-btn" id="userLogout">Sair</button>' : ''}
   `;
-  openAdminBtn.style.display = isAdmin ? '' : 'none';
-  cartBtn.style.display = isAdmin ? 'none' : '';
+  if (!hasPanel) {
+    document.getElementById('userLogout').onclick = async () => {
+      await logout();
+      document.getElementById('adminView').style.display = 'none';
+      document.getElementById('publicView').style.display = 'none';
+      wrap.style.display = 'none';
+      wrap.innerHTML = '';
+      cartBtn.style.display = 'none';
+      document.getElementById('authView').style.display = '';
+    };
+  }
+  openAdminBtn.style.display = hasPanel ? '' : 'none';
+  cartBtn.style.display = hasPanel ? 'none' : '';
 }
 
 export function showAuthError(id, msg) {

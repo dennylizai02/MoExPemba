@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MoEx Pemba — o melhor das lojas de Pemba, escolhido a dedo para si. Percorremos as lojas da cidade para trazer-lhe os artigos mais bonitos.">
+<meta property="og:title" content="MoEx Pemba">
+<meta property="og:description" content="O melhor das lojas de Pemba, escolhido a dedo para si. Veja, escolha, encomende — nós tratamos do resto.">
+<meta property="og:type" content="website">
     <title>MoEx Pemba</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -85,6 +89,16 @@
         <div class="auth-toggle">Já tem conta? <a id="showLogin">Entrar</a></div>
       </div>
 
+      <!-- Confirmação de email -->
+      <div class="auth-form" id="authConfirmForm" style="display:none;">
+        <div class="auth-error" id="confirmError"></div>
+        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Enviámos um email de confirmação para:</p>
+        <p id="confirmEmailAddr" style="font-weight:700;color:var(--teal);margin:8px 0 16px;"></p>
+        <p style="font-size:0.82rem;color:rgba(18,48,46,0.55);margin-bottom:14px;">Clique no link no email para ativar a sua conta. Verifique também a pasta de spam.</p>
+        <button class="btn-primary" id="authResendBtn" style="background:var(--teal-light);color:var(--teal);">Reenviar email de confirmação</button>
+        <div class="auth-toggle" style="margin-top:12px;"><a id="showLoginFromConfirm">Voltar ao login</a></div>
+      </div>
+
       <!-- Esqueci a senha -->
       <div class="auth-form" id="authForgotForm" style="display:none;">
         <div class="auth-error" id="forgotError"></div>
@@ -143,9 +157,17 @@
           </svg>
         </section>
         <div class="filters">
-          <input class="search" id="searchBox" placeholder="Procurar produtos...">
+          <input class="search" id="searchBox" placeholder="Procurar produtos..." aria-label="Procurar produtos">
+          <select id="sortBox" class="search" style="flex:0 1 180px;" aria-label="Ordenar produtos">
+            <option value="">Ordenar por...</option>
+            <option value="price-asc">Menor preço</option>
+            <option value="price-desc">Maior preço</option>
+            <option value="sold-desc">Mais vendidos</option>
+            <option value="newest">Mais recentes</option>
+          </select>
           <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
         </div>
+        <div id="resultCount" style="max-width:1000px;margin:0 auto;padding:0 28px 4px;font-size:0.82rem;color:rgba(18,48,46,0.55);"></div>
         <div class="featured-strip" id="featuredStrip"></div>
         <div class="grid" id="productGrid"></div>
         <div class="empty-state" id="emptyState" style="display:none;">Ainda não há produtos aqui. Volte em breve.</div>
@@ -270,7 +292,7 @@
 <div class="drawer" id="cartDrawer">
   <div class="drawer-head">
     <h3 class="display" style="margin:0;font-size:1.2rem;">O seu carrinho</h3>
-    <button id="closeCart">✕</button>
+    <button id="closeCart" aria-label="Fechar carrinho">✕</button>
   </div>
   <div class="drawer-items" id="cartItems"></div>
   <div class="drawer-foot">
@@ -282,7 +304,7 @@
 <!-- Product modal -->
 <div class="modal" id="productModal">
   <div class="modal-box wide">
-    <div class="modal-head"><h3 class="display" id="pmName" style="margin:0;"></h3><button id="pmClose">✕</button></div>
+    <div class="modal-head"><h3 class="display" id="pmName" style="margin:0;"></h3><button id="pmClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body" style="display:flex;gap:20px;flex-wrap:wrap;">
       <div style="flex:1 1 220px;">
         <img class="prod-modal-img" id="pmImg" style="border-radius:10px;">
@@ -333,16 +355,16 @@
 <!-- Checkout modal -->
 <div class="modal" id="checkoutModal">
   <div class="modal-box">
-    <div class="modal-head"><h3 class="display" style="margin:0;">Finalizar encomenda</h3><button id="ckClose">✕</button></div>
+    <div class="modal-head"><h3 class="display" style="margin:0;">Finalizar encomenda</h3><button id="ckClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Nome completo</label><input id="ckName" placeholder="O seu nome"></div>
       <div class="field"><label>Telefone / WhatsApp</label><input id="ckPhone" placeholder="84xxxxxxx"></div>
       <div class="field">
-        <label>Bairro / Zona de entrega</label>
-        <select id="ckZone"><option value="">Selecione a zona...</option></select>
+        <label>Bairro / Zona de entrega <span style="color:var(--coral);">*</span></label>
+        <select id="ckZone" required><option value="">Selecione a zona...</option></select>
       </div>
       <div class="field" id="ckAddrOtherWrap" style="display:none;">
-        <label>Especifique o local</label><input id="ckAddr" placeholder="Ex: Cariaco, Alto Gingone...">
+        <label>Especifique o local <span style="color:var(--coral);">*</span></label><input id="ckAddr" placeholder="Ex: Cariaco, Alto Gingone...">
       </div>
       <div class="field"><label>Observações (opcional)</label><textarea id="ckNote" placeholder="Cor, tamanho, referência..."></textarea></div>
       <button class="btn-primary mango" id="ckWhats">Enviar pedido por WhatsApp</button>
@@ -354,7 +376,7 @@
 <!-- Custom request modal -->
 <div class="modal" id="requestModal">
   <div class="modal-box">
-    <div class="modal-head"><h3 class="display" style="margin:0;">Descreva o que procura</h3><button id="reqClose">✕</button></div>
+    <div class="modal-head"><h3 class="display" style="margin:0;">Descreva o que procura</h3><button id="reqClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body">
       <p style="font-size:0.85rem;color:rgba(18,48,46,0.65);margin-top:0;">Não encontrou o produto? Descreva-o e entramos em contacto assim que o encontrarmos numa loja.</p>
       <div class="field"><label>O seu nome</label><input id="reqName"></div>
