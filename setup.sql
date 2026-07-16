@@ -112,7 +112,62 @@ CREATE POLICY "Admins and sellers can update admin data"
   );
 
 -- =============================================================
--- 6. Tabela carts — carrinho persistente por utilizador
+-- 6. Tabela orders — encomendas dedicadas
+-- =============================================================
+
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  addr TEXT NOT NULL DEFAULT '',
+  note TEXT DEFAULT '',
+  items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  total NUMERIC NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'novo',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+-- Utilizadores podem ver as suas próprias encomendas
+CREATE POLICY "Users can view own orders"
+  ON orders FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+-- Utilizadores autenticados podem criar encomendas
+CREATE POLICY "Authenticated users can create orders"
+  ON orders FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+-- Admins e vendedores podem ver todas as encomendas
+CREATE POLICY "Admins and sellers can view all orders"
+  ON orders FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'seller'))
+  );
+
+-- Admins e vendedores podem atualizar estado das encomendas
+CREATE POLICY "Admins and sellers can update orders"
+  ON orders FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'seller'))
+  );
+
+-- Admins podem eliminar encomendas
+CREATE POLICY "Admins can delete orders"
+  ON orders FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
+
+-- =============================================================
+-- 7. Tabela carts — carrinho persistente por utilizador
 -- =============================================================
 
 CREATE TABLE IF NOT EXISTS carts (

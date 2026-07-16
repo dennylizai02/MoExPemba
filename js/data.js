@@ -1,5 +1,5 @@
 import { uid } from './utils.js';
-import { storage } from './storage.js';
+import { storage, orderStorage } from './storage.js';
 
 export async function loadData() {
   const defaults = {
@@ -13,7 +13,6 @@ export async function loadData() {
 
   const keys = [
     { key: 'products', admin: true, stateKey: 'products' },
-    { key: 'orders', admin: true, stateKey: 'orders' },
     { key: 'requests', admin: true, stateKey: 'customRequests' },
     { key: 'zones', admin: true, stateKey: 'zones' },
     { key: 'payments', admin: true, stateKey: 'payments' },
@@ -31,9 +30,15 @@ export async function loadData() {
   });
 
   try {
+    state.orders = await orderStorage.loadAll();
+  } catch {
+    state.orders = defaults.orders;
+  }
+
+  try {
     if (!results[0]) await storage.set('products', JSON.stringify(state.products), true);
-    if (!results[3]) await storage.set('zones', JSON.stringify(state.zones), true);
-    if (!results[4]) await storage.set('payments', JSON.stringify(state.payments), true);
+    if (!results[2]) await storage.set('zones', JSON.stringify(state.zones), true);
+    if (!results[3]) await storage.set('payments', JSON.stringify(state.payments), true);
   } catch (e) {
     console.warn('Could not persist defaults (non-admin or RLS):', e);
   }
@@ -55,8 +60,11 @@ export async function loadFavorites(userId) {
 export async function saveProducts(products) {
   await storage.set('products', JSON.stringify(products), true);
 }
-export async function saveOrders(orders) {
-  await storage.set('orders', JSON.stringify(orders), true);
+export async function createOrder(order) {
+  await orderStorage.create(order);
+}
+export async function updateOrderStatus(orderId, status) {
+  await orderStorage.updateStatus(orderId, status);
 }
 export async function saveRequests(customRequests) {
   await storage.set('requests', JSON.stringify(customRequests), true);

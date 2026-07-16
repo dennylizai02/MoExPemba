@@ -7,7 +7,7 @@ import {
   isRecoverySession
 } from './auth.js';
 import {
-  loadData, saveProducts, saveOrders, saveRequests, saveFavorites, saveZones, savePayments, saveSuppliers, loadFavorites
+  loadData, saveProducts, createOrder, updateOrderStatus, saveRequests, saveFavorites, saveZones, savePayments, saveSuppliers, loadFavorites
 } from './data.js';
 import { cartStorage } from './storage.js';
 import { renderProductCards, renderProductModal, renderReviews, matchesSearch } from './products.js';
@@ -211,13 +211,18 @@ async function loadClients() {
   state.clients = data || [];
 }
 
-function handleOrderStatusChange(orderId, newStatus) {
+async function handleOrderStatusChange(orderId, newStatus) {
   const order = state.orders.find(o => o.id === orderId);
   if (!order) return;
-  order.status = newStatus;
-  saveOrders(state.orders);
-  renderAdminState();
-  showToast("Status atualizado");
+  try {
+    await updateOrderStatus(orderId, newStatus);
+    order.status = newStatus;
+    renderAdminState();
+    showToast("Status atualizado");
+  } catch (e) {
+    console.error('Order status update failed:', e);
+    showToast("Erro ao atualizar status");
+  }
 }
 
 function renderAdminState() {
@@ -301,9 +306,9 @@ function finishCheckout() {
 }
 
 async function handleRegisterOrder(name, phone, addr, note) {
-  state.orders.unshift({
-    id: uid(),
-    date: new Date().toLocaleString('pt-PT'),
+  const user = getCurrentUser();
+  const order = {
+    user_id: user?.id,
     name, phone, addr, note,
     items: state.cart.map(l => {
       const p = state.products.find(pr => pr.id === l.id);
@@ -311,13 +316,14 @@ async function handleRegisterOrder(name, phone, addr, note) {
     }),
     total: cartTotalValue(state.cart, state.products),
     status: "novo"
-  });
+  };
   state.cart.forEach(l => {
     const p = state.products.find(pr => pr.id === l.id);
     if (p) p.sold = (p.sold || 0) + l.qty;
   });
   try {
-    await saveOrders(state.orders);
+    await createOrder(order);
+    state.orders.unshift({ ...order, id: uid(), date: new Date().toLocaleString('pt-PT') });
     await saveProducts(state.products);
     return true;
   } catch (e) {

@@ -28,6 +28,52 @@ function applySizeColorFilter(query, size, color) {
   return query;
 }
 
+export const orderStorage = {
+  async loadAll() {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(r => ({
+      id: r.id,
+      date: new Date(r.created_at).toLocaleString('pt-PT'),
+      name: r.name,
+      phone: r.phone,
+      addr: r.addr,
+      note: r.note,
+      items: r.items,
+      total: r.total,
+      status: r.status,
+      user_id: r.user_id
+    }));
+  },
+
+  async create(order) {
+    const { error } = await supabase
+      .from('orders')
+      .insert({
+        user_id: order.user_id,
+        name: order.name,
+        phone: order.phone,
+        addr: order.addr,
+        note: order.note || '',
+        items: order.items,
+        total: order.total,
+        status: order.status || 'novo'
+      });
+    if (error) throw error;
+  },
+
+  async updateStatus(orderId, status) {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', orderId);
+    if (error) throw error;
+  }
+};
+
 export const cartStorage = {
   async load(userId) {
     if (!userId) return [];
