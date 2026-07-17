@@ -7,7 +7,7 @@ import {
   isRecoverySession
 } from './auth.js';
 import {
-  loadData, saveProducts, createOrder, updateOrderStatus, saveRequests, saveFavorites, saveZones, savePayments, saveSuppliers, loadFavorites
+  loadData, saveProducts, createOrder, updateOrderStatus, saveRequests, saveFavorites, saveZones, savePayments, saveSuppliers, loadFavorites, loadUserOrders
 } from './data.js';
 import { cartStorage } from './storage.js';
 import { renderProductCards, renderProductModal, renderReviews, matchesSearch } from './products.js';
@@ -308,6 +308,51 @@ function finishCheckout() {
   document.getElementById('ckNote').value = '';
   renderGrid();
   renderFeaturedStrip();
+}
+
+const STATUS_LABELS = { 'novo': 'Novo', 'em curso': 'Em curso', 'entregue': 'Entregue', 'cancelado': 'Cancelado' };
+const STATUS_STYLES = {
+  'novo': 'background:var(--mango);color:var(--ink);',
+  'em curso': 'background:var(--teal);color:var(--paper);',
+  'entregue': 'background:#4caf50;color:#fff;',
+  'cancelado': 'background:var(--coral);color:#fff;'
+};
+
+async function openMyOrders() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const modal = document.getElementById('myOrdersModal');
+  const list = document.getElementById('myOrdersList');
+  list.innerHTML = '<p style="text-align:center;color:rgba(18,48,46,0.5);">A carregar...</p>';
+  modal.classList.add('show');
+  try {
+    const orders = await loadUserOrders(user.id);
+    if (orders.length === 0) {
+      list.innerHTML = '<p style="text-align:center;color:rgba(18,48,46,0.5);">Ainda não fez nenhuma encomenda.</p>';
+      return;
+    }
+    list.innerHTML = orders.map(o => {
+      const items = (o.items || []).map(i => {
+        const variant = [i.size, i.color].filter(Boolean).join(' · ');
+        return `<span style="font-size:0.85rem;">${i.qty}x ${esc(i.name)}${variant ? ' (' + esc(variant) + ')' : ''} — ${fmt(i.price * i.qty)}</span>`;
+      }).join('<br>');
+      return `
+        <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+            <span style="font-size:0.82rem;color:rgba(18,48,46,0.55);">${esc(o.date)}</span>
+            <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;${STATUS_STYLES[o.status] || ''}">${STATUS_LABELS[o.status] || o.status}</span>
+          </div>
+          <div style="margin-bottom:6px;">${items}</div>
+          <div style="font-size:0.85rem;color:rgba(18,48,46,0.65);">📍 ${esc(o.addr)}${o.note ? ' — ' + esc(o.note) : ''}</div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-weight:700;">
+            <span>Total</span><span class="mono">${fmt(o.total)}</span>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('Failed to load user orders:', e);
+    list.innerHTML = '<p style="text-align:center;color:var(--coral);">Erro ao carregar encomendas.</p>';
+  }
 }
 
 async function handleRegisterOrder(name, phone, addr, note) {
@@ -755,6 +800,11 @@ function setupEventListeners() {
     closeCart();
     navigateTo('admin');
     render();
+  };
+
+  document.getElementById('openMyOrders').onclick = () => openMyOrders();
+  document.getElementById('moClose').onclick = () => {
+    document.getElementById('myOrdersModal').classList.remove('show');
   };
 
   document.getElementById('adLogout').onclick = async () => {

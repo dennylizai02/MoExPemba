@@ -49,6 +49,27 @@ export const orderStorage = {
     }));
   },
 
+  async loadForUser(userId) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(r => ({
+      id: r.id,
+      date: new Date(r.created_at).toLocaleString('pt-PT'),
+      name: r.name,
+      phone: r.phone,
+      addr: r.addr,
+      note: r.note,
+      items: r.items,
+      total: r.total,
+      status: r.status,
+      user_id: r.user_id
+    }));
+  },
+
   async create(order) {
     const { data, error } = await supabase
       .from('orders')

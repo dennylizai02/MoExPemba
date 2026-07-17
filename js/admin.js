@@ -288,11 +288,13 @@ export function updateHeaderUI(user) {
   const wrap = document.getElementById('userInfo');
   const openAdminBtn = document.getElementById('openAdmin');
   const cartBtn = document.getElementById('openCart');
+  const myOrdersBtn = document.getElementById('openMyOrders');
   if (!user) {
     wrap.style.display = 'none';
     wrap.innerHTML = '';
     openAdminBtn.style.display = 'none';
     cartBtn.style.display = 'none';
+    if (myOrdersBtn) myOrdersBtn.style.display = 'none';
     return;
   }
   const isAdmin = user.role === 'admin';
@@ -317,6 +319,7 @@ export function updateHeaderUI(user) {
   };
   openAdminBtn.style.display = hasPanel && onStore ? '' : 'none';
   cartBtn.style.display = showCart ? '' : 'none';
+  if (myOrdersBtn) myOrdersBtn.style.display = !hasPanel ? '' : 'none';
 }
 
 export function showAuthError(id, msg) {

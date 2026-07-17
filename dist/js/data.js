@@ -60,6 +60,9 @@ export async function loadFavorites(userId) {
 export async function saveProducts(products) {
   await storage.set('products', JSON.stringify(products), true);
 }
+export async function loadUserOrders(userId) {
+  return await orderStorage.loadForUser(userId);
+}
 export async function createOrder(order) {
   return await orderStorage.create(order);
 }

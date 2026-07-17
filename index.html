@@ -30,6 +30,9 @@
     <span class="brand-suffix">Pemba</span>
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
+    <button class="cart-btn" id="openMyOrders" style="display:none;">
+      📋 Os Meus Pedidos
+    </button>
     <div class="user-info" id="userInfo" style="display:none;"></div>
     <button class="cart-btn" id="openCart" style="display:none;">
       🧺 Carrinho <span class="cart-count" id="cartCount">0</span>
@@ -349,6 +352,14 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- My Orders modal -->
+<div class="modal" id="myOrdersModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 class="display" style="margin:0;">Os Meus Pedidos</h3><button id="moClose" aria-label="Fechar modal">✕</button></div>
+    <div class="modal-body" id="myOrdersList" style="max-height:60vh;overflow-y:auto;"></div>
   </div>
 </div>
 
