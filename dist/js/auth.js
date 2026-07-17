@@ -51,11 +51,12 @@ export async function loginUser(identifier, password) {
   const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
   if (isPhone) {
     const cleanPhone = identifier.replace(/\D/g, '');
-    const { data } = await supabase
+    const { data, error: lookupErr } = await supabase
       .from('profiles')
       .select('email')
       .eq('phone', cleanPhone)
       .maybeSingle();
+    if (lookupErr) { console.error('Phone lookup error:', lookupErr); return { error: "Erro ao procurar telefone: " + lookupErr.message }; }
     if (!data || !data.email) return { error: "Telefone não encontrado" };
     email = data.email;
   }
@@ -86,11 +87,12 @@ export async function requestPasswordReset(identifier) {
   const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
   if (isPhone) {
     const cleanPhone = identifier.replace(/\D/g, '');
-    const { data } = await supabase
+    const { data, error: lookupErr } = await supabase
       .from('profiles')
       .select('email')
       .eq('phone', cleanPhone)
       .maybeSingle();
+    if (lookupErr) { console.error('Phone lookup error:', lookupErr); return { error: "Erro ao procurar telefone: " + lookupErr.message }; }
     if (!data || !data.email) return { error: "Telefone não encontrado" };
     email = data.email;
   }
@@ -113,11 +115,12 @@ export async function resendConfirmation(identifier) {
   const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
   if (isPhone) {
     const cleanPhone = identifier.replace(/\D/g, '');
-    const { data } = await supabase
+    const { data, error: lookupErr } = await supabase
       .from('profiles')
       .select('email')
       .eq('phone', cleanPhone)
       .maybeSingle();
+    if (lookupErr) { console.error('Phone lookup error:', lookupErr); return { error: "Erro ao procurar telefone: " + lookupErr.message }; }
     if (!data || !data.email) return { error: "Telefone não encontrado" };
     email = data.email;
   }
