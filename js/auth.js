@@ -23,8 +23,29 @@ async function fetchProfile(userId) {
     .select('id, name, phone, email, role')
     .eq('id', userId)
     .maybeSingle();
-  if (error || !data) return null;
-  return data;
+  if (error) { console.error('[auth] fetchProfile error:', error); return null; }
+  if (data) {
+    console.log('[auth] profile loaded:', { id: data.id, name: data.name, role: data.role });
+    return data;
+  }
+  console.warn('[auth] fetchProfile: no profile found for userId', userId, '- attempting auto-create');
+  const { data: authData } = await supabase.auth.getUser();
+  const meta = authData?.user?.user_metadata || {};
+  const newProfile = {
+    id: userId,
+    name: meta.name || '',
+    phone: meta.phone || '',
+    email: authData?.user?.email || '',
+    role: 'user'
+  };
+  const { data: inserted, error: insertErr } = await supabase
+    .from('profiles')
+    .insert(newProfile)
+    .select('id, name, phone, email, role')
+    .maybeSingle();
+  if (insertErr) { console.error('[auth] auto-create profile failed:', insertErr); return null; }
+  console.log('[auth] profile auto-created:', inserted);
+  return inserted;
 }
 
 export async function registerUser(name, email, phone, password) {
