@@ -1,5 +1,5 @@
 import { WHATSAPP_NUMBER, supabase } from './config.js';
-import { fmt, uid, showToast } from './utils.js';
+import { fmt, uid, showToast, esc } from './utils.js';
 import {
   registerUser, loginUser, logout, restoreSession, getCurrentUser,
   isCurrentUserAdmin, isCurrentUserSeller, canAccessPanel,
