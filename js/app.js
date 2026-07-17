@@ -415,8 +415,16 @@ function clearProductForm() {
   document.getElementById('npSupplier').value = '';
 }
 
+function clearUserState() {
+  state.cart = [];
+  state.favorites = [];
+  state.clients = [];
+  state.orders = [];
+  renderCartState();
+}
+
 function navigateTo(view) {
-  if (view === 'auth') showAuthView();
+  if (view === 'auth') { clearUserState(); showAuthView(); }
   else if (view === 'public') showPublicView();
   else if (view === 'admin') showAdminView(getCurrentUser());
   updateHeaderUI(getCurrentUser());
@@ -427,7 +435,6 @@ async function init() {
   try {
     const data = await loadData();
     Object.assign(state, data);
-    loadClients();
 
     if (isRecoverySession()) {
       window.history.replaceState(null, '', window.location.pathname);
@@ -442,6 +449,7 @@ async function init() {
       if (user) {
         try { state.cart = await cartStorage.load(user.id); } catch (e) { console.error('Cart load error:', e); }
         try { state.favorites = await loadFavorites(user.id); } catch (e) { console.error('Favorites load error:', e); }
+        try { await loadClients(); } catch (e) { console.error('Load clients error:', e); }
       }
       navigateTo(canAccessPanel() ? 'admin' : 'public');
     } else {
@@ -648,6 +656,12 @@ function setupEventListeners() {
         showAuthError('loginError', result.error);
       }
       return;
+    }
+    const user = getCurrentUser();
+    if (user) {
+      try { state.cart = await cartStorage.load(user.id); } catch (e) { console.error('Cart load error:', e); }
+      try { state.favorites = await loadFavorites(user.id); } catch (e) { console.error('Favorites load error:', e); }
+      try { await loadClients(); } catch (e) { console.error('Load clients error:', e); }
     }
     navigateTo(canAccessPanel() ? 'admin' : 'public');
     render();
