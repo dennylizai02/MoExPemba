@@ -30,6 +30,12 @@ CREATE POLICY "Allow phone lookup for login"
   TO anon, authenticated
   USING (true);
 
+-- Função RPC para lookup de telefone (bypassa RLS, seguro para anon)
+CREATE OR REPLACE FUNCTION lookup_phone_email(p_phone TEXT)
+RETURNS TEXT AS $$
+  SELECT email FROM profiles WHERE phone = p_phone LIMIT 1;
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
 -- 3. Trigger — criar profile automaticamente ao registar
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$

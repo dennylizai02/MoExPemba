@@ -51,14 +51,10 @@ export async function loginUser(identifier, password) {
   const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
   if (isPhone) {
     const cleanPhone = identifier.replace(/\D/g, '');
-    const { data, error: lookupErr } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('phone', cleanPhone)
-      .maybeSingle();
+    const { data, error: lookupErr } = await supabase.rpc('lookup_phone_email', { p_phone: cleanPhone });
     if (lookupErr) { console.error('Phone lookup error:', lookupErr); return { error: "Erro ao procurar telefone: " + lookupErr.message }; }
-    if (!data || !data.email) return { error: "Telefone não encontrado" };
-    email = data.email;
+    if (!data) return { error: "Telefone não encontrado" };
+    email = data;
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -87,14 +83,10 @@ export async function requestPasswordReset(identifier) {
   const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
   if (isPhone) {
     const cleanPhone = identifier.replace(/\D/g, '');
-    const { data, error: lookupErr } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('phone', cleanPhone)
-      .maybeSingle();
+    const { data, error: lookupErr } = await supabase.rpc('lookup_phone_email', { p_phone: cleanPhone });
     if (lookupErr) { console.error('Phone lookup error:', lookupErr); return { error: "Erro ao procurar telefone: " + lookupErr.message }; }
-    if (!data || !data.email) return { error: "Telefone não encontrado" };
-    email = data.email;
+    if (!data) return { error: "Telefone não encontrado" };
+    email = data;
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -115,14 +107,10 @@ export async function resendConfirmation(identifier) {
   const isPhone = /^\d{8,12}$/.test(identifier.replace(/\D/g, ''));
   if (isPhone) {
     const cleanPhone = identifier.replace(/\D/g, '');
-    const { data, error: lookupErr } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('phone', cleanPhone)
-      .maybeSingle();
+    const { data, error: lookupErr } = await supabase.rpc('lookup_phone_email', { p_phone: cleanPhone });
     if (lookupErr) { console.error('Phone lookup error:', lookupErr); return { error: "Erro ao procurar telefone: " + lookupErr.message }; }
-    if (!data || !data.email) return { error: "Telefone não encontrado" };
-    email = data.email;
+    if (!data) return { error: "Telefone não encontrado" };
+    email = data;
   }
   const { error } = await supabase.auth.resend({ email, type: 'signup' });
   if (error) return { error: error.message };
