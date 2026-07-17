@@ -61,7 +61,7 @@ export async function saveProducts(products) {
   await storage.set('products', JSON.stringify(products), true);
 }
 export async function createOrder(order) {
-  await orderStorage.create(order);
+  return await orderStorage.create(order);
 }
 export async function updateOrderStatus(orderId, status) {
   await orderStorage.updateStatus(orderId, status);

@@ -50,7 +50,7 @@ export const orderStorage = {
   },
 
   async create(order) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('orders')
       .insert({
         user_id: order.user_id,
@@ -61,8 +61,11 @@ export const orderStorage = {
         items: order.items,
         total: order.total,
         status: order.status || 'novo'
-      });
+      })
+      .select()
+      .single();
     if (error) throw error;
+    return data;
   },
 
   async updateStatus(orderId, status) {

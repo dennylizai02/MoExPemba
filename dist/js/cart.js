@@ -85,4 +85,7 @@ export function closeCart() {
 
 export function closeAllModals() {
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+  if (!document.getElementById('cartDrawer').classList.contains('show')) {
+    document.getElementById('overlay').classList.remove('show');
+  }
 }
