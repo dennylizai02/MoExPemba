@@ -1,12 +1,12 @@
 import { test, expect, Page } from '@playwright/test';
 
-const ADMIN_PHONE = '857085581';
+const ADMIN_EMAIL = 'lizaivalden1@outlook.com';
 const ADMIN_PASS = 'Isly2017';
 
 async function loginAsAdmin(page: Page) {
   await page.goto('/');
   await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
-  await page.fill('#authLoginEmail', ADMIN_PHONE);
+  await page.fill('#authLoginEmail', ADMIN_EMAIL);
   await page.fill('#authLoginPass', ADMIN_PASS);
   await page.click('#authLoginBtn');
   await page.waitForSelector('#tabDashboard', { state: 'visible', timeout: 15000 });
@@ -36,7 +36,7 @@ test.describe('Auth', () => {
   test('login com credenciais válidas', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
-    await page.fill('#authLoginEmail', ADMIN_PHONE);
+    await page.fill('#authLoginEmail', ADMIN_EMAIL);
     await page.fill('#authLoginPass', ADMIN_PASS);
     await page.click('#authLoginBtn');
     await page.waitForSelector('#tabDashboard', { state: 'visible', timeout: 15000 });
@@ -46,7 +46,7 @@ test.describe('Auth', () => {
   test('login com senha errada mostra erro', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
-    await page.fill('#authLoginEmail', ADMIN_PHONE);
+    await page.fill('#authLoginEmail', ADMIN_EMAIL);
     await page.fill('#authLoginPass', 'senhaerrada123');
     await page.click('#authLoginBtn');
     await page.waitForSelector('#loginError.show', { timeout: 10000 });
@@ -80,7 +80,7 @@ test.describe('Auth', () => {
   test('Enter no campo senha faz login', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
-    await page.fill('#authLoginEmail', ADMIN_PHONE);
+    await page.fill('#authLoginEmail', ADMIN_EMAIL);
     await page.fill('#authLoginPass', ADMIN_PASS);
     await page.press('#authLoginPass', 'Enter');
     await page.waitForSelector('#tabDashboard', { state: 'visible', timeout: 15000 });

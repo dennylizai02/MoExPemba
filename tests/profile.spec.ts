@@ -1,15 +1,24 @@
 import { test, expect, Page } from '@playwright/test';
 
-const USER_PHONE = '861924050';
+const USER_EMAIL = 'lizaivalden@gmail.com';
 const USER_PASS = 'Isly2017';
 
 async function loginAsUser(page: Page) {
   await page.goto('/');
   await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
-  await page.fill('#authLoginEmail', USER_PHONE);
+  await page.fill('#authLoginEmail', USER_EMAIL);
   await page.fill('#authLoginPass', USER_PASS);
   await page.click('#authLoginBtn');
-  await page.waitForTimeout(3000);
+  await page.waitForSelector('#publicView, #adminView, #tabDashboard', { state: 'visible', timeout: 15000 });
+  const adminView = await page.locator('#adminView').isVisible().catch(() => false);
+  if (adminView) {
+    const storeBtn = page.locator('[data-tab="store"]');
+    if (await storeBtn.isVisible()) {
+      await storeBtn.click();
+      await page.waitForSelector('#publicView', { state: 'visible', timeout: 5000 });
+    }
+  }
+  await page.waitForTimeout(1000);
 }
 
 // ═══════════════════════════════════════════
@@ -34,7 +43,7 @@ test.describe('Perfil - Login', () => {
   test('login com senha errada mostra erro', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
-    await page.fill('#authLoginEmail', USER_PHONE);
+    await page.fill('#authLoginEmail', USER_EMAIL);
     await page.fill('#authLoginPass', 'senhaerrada123');
     await page.click('#authLoginBtn');
     await page.waitForSelector('#loginError.show', { timeout: 10000 });
