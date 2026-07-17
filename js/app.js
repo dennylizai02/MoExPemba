@@ -330,7 +330,7 @@ async function handleRegisterOrder(name, phone, addr, note) {
     });
     const orderId = created ? created.id : uid();
     state.orders.unshift({ ...order, id: orderId, date: new Date(created?.created_at || Date.now()).toLocaleString('pt-PT') });
-    await saveProducts(state.products);
+    saveProducts(state.products).catch(e => console.warn('Product stats save skipped:', e));
     return true;
   } catch (e) {
     console.error('Order save failed:', e);
@@ -563,7 +563,9 @@ function setupEventListeners() {
     btn.disabled = false; btn.textContent = 'Enviar pedido por WhatsApp';
     if (!saved) return;
     const msg = `Olá! Gostaria de fazer uma encomenda:\n\n${buildOrderSummaryText()}\n\nTotal: ${fmt(cartTotalValue(state.cart, state.products))}\n\nNome: ${name}\nTelefone: ${phone}\nLocal: ${addr}${note ? '\nObs: ' + note : ''}`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    const waWin = window.open(waUrl, '_blank');
+    if (!waWin) window.location.href = waUrl;
     finishCheckout();
   };
 
