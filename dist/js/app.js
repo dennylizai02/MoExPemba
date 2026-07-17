@@ -143,12 +143,15 @@ function renderGrid() {
       <p style="margin-bottom:6px;">Não encontramos exatamente isso, mas talvez goste destes:</p>
       <div style="display:flex;gap:16px;justify-content:center;margin:8px 0;">
         <button class="btn-primary mango" id="openReqModal" style="width:auto;padding:11px 20px;">Descrever o produto que procuro</button>
-        <button class="btn-secondary" style="width:auto;padding:11px 20px;margin-top:0;" onclick="window.open('https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Não encontrei na página o produto que procuro, pode me ajudar?')}', '_blank')">Falar com o lojista</button>
+        <button class="btn-secondary" id="openWhatsAppFallback" style="width:auto;padding:11px 20px;margin-top:0;">Falar com o lojista</button>
       </div>`;
     document.getElementById('openReqModal').onclick = () => {
       lastFocusedElement = document.activeElement;
       document.getElementById('requestModal').classList.add('show');
       trapFocus(document.getElementById('requestModal'));
+    };
+    document.getElementById('openWhatsAppFallback').onclick = () => {
+      window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Olá! Não encontrei na página o produto que procuro, pode me ajudar?'), '_blank');
     };
     renderProductCards(related, grid, handleAddToCart, openProductModalHandler, handleToggleFavorite, state.favorites);
     return;
@@ -303,6 +306,8 @@ function finishCheckout() {
   document.getElementById('ckZone').value = '';
   document.getElementById('ckAddrOtherWrap').style.display = 'none';
   document.getElementById('ckNote').value = '';
+  renderGrid();
+  renderFeaturedStrip();
 }
 
 async function handleRegisterOrder(name, phone, addr, note) {
@@ -317,13 +322,14 @@ async function handleRegisterOrder(name, phone, addr, note) {
     total: cartTotalValue(state.cart, state.products),
     status: "novo"
   };
-  state.cart.forEach(l => {
-    const p = state.products.find(pr => pr.id === l.id);
-    if (p) p.sold = (p.sold || 0) + l.qty;
-  });
   try {
-    await createOrder(order);
-    state.orders.unshift({ ...order, id: uid(), date: new Date().toLocaleString('pt-PT') });
+    const created = await createOrder(order);
+    state.cart.forEach(l => {
+      const p = state.products.find(pr => pr.id === l.id);
+      if (p) p.sold = (p.sold || 0) + l.qty;
+    });
+    const orderId = created ? created.id : uid();
+    state.orders.unshift({ ...order, id: orderId, date: new Date(created?.created_at || Date.now()).toLocaleString('pt-PT') });
     await saveProducts(state.products);
     return true;
   } catch (e) {
@@ -454,14 +460,20 @@ async function init() {
 function setupEventListeners() {
   document.getElementById('openCart').onclick = openCartDrawer;
   document.getElementById('closeCart').onclick = closeCart;
-  document.getElementById('overlay').onclick = () => { closeCart(); closeAllModals(); };
+  document.getElementById('overlay').onclick = () => {
+    closeAllModals();
+    closeCart();
+  };
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeCart(); closeAllModals(); }
+    if (e.key === 'Escape') { closeAllModals(); closeCart(); }
   });
 
   document.getElementById('pmClose').onclick = () => {
     document.getElementById('productModal').classList.remove('show');
     if (lastFocusedElement) lastFocusedElement.focus();
+    if (!document.getElementById('cartDrawer').classList.contains('show')) {
+      document.getElementById('overlay').classList.remove('show');
+    }
   };
   document.getElementById('pmAdd').onclick = () => {
     const p = state.products.find(pr => pr.id === state.currentProductId);
@@ -473,6 +485,9 @@ function setupEventListeners() {
     renderCartState();
     showToast("Adicionado ao carrinho");
     document.getElementById('productModal').classList.remove('show');
+    if (!document.getElementById('cartDrawer').classList.contains('show')) {
+      document.getElementById('overlay').classList.remove('show');
+    }
   };
 
   document.getElementById('rvSend').onclick = async () => {
@@ -525,6 +540,9 @@ function setupEventListeners() {
   document.getElementById('ckClose').onclick = () => {
     document.getElementById('checkoutModal').classList.remove('show');
     if (lastFocusedElement) lastFocusedElement.focus();
+    if (!document.getElementById('cartDrawer').classList.contains('show')) {
+      document.getElementById('overlay').classList.remove('show');
+    }
   };
 
   document.getElementById('ckWhats').onclick = async () => {
@@ -564,6 +582,9 @@ function setupEventListeners() {
   document.getElementById('reqClose').onclick = () => {
     document.getElementById('requestModal').classList.remove('show');
     if (lastFocusedElement) lastFocusedElement.focus();
+    if (!document.getElementById('cartDrawer').classList.contains('show')) {
+      document.getElementById('overlay').classList.remove('show');
+    }
   };
   document.getElementById('reqSend').onclick = async () => {
     const btn = document.getElementById('reqSend');
@@ -721,7 +742,6 @@ function setupEventListeners() {
   };
 
   document.getElementById('adLogout').onclick = async () => {
-    document.getElementById('adminView').style.display = 'none';
     await logout();
     navigateTo('auth');
     render();
@@ -738,7 +758,12 @@ function setupEventListeners() {
       content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
       if (tab === 'store') {
         document.getElementById('publicView').style.display = '';
+        document.getElementById('adminView').querySelector('.admin-sidebar').style.display = 'none';
+        const footer = document.querySelector('footer.site');
+        if (footer) footer.style.display = '';
+        render();
       } else {
+        document.getElementById('adminView').querySelector('.admin-sidebar').style.display = '';
         document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
         document.getElementById('tabOrders').style.display = tab === 'orders' ? 'block' : 'none';
         document.getElementById('tabProducts').style.display = tab === 'products' ? 'block' : 'none';
@@ -746,8 +771,11 @@ function setupEventListeners() {
         document.getElementById('tabRequests').style.display = tab === 'requests' ? 'block' : 'none';
         document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
         document.getElementById('tabSuppliers').style.display = tab === 'suppliers' ? 'block' : 'none';
+        const footer = document.querySelector('footer.site');
+        if (footer) footer.style.display = 'none';
         renderAdminState();
       }
+      setTimeout(() => updateHeaderUI(getCurrentUser()), 0);
     };
   });
 

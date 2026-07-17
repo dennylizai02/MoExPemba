@@ -216,7 +216,8 @@ export function showAuthView() {
   document.getElementById('authView').style.display = '';
   document.getElementById('publicView').style.display = 'none';
   document.getElementById('adminView').style.display = 'none';
-  document.querySelector('footer.site').style.display = '';
+  const footer = document.querySelector('footer.site');
+  if (footer) footer.style.display = '';
   document.getElementById('authLoginForm').style.display = '';
   document.getElementById('authRegisterForm').style.display = 'none';
   document.getElementById('authForgotForm').style.display = 'none';
@@ -230,6 +231,10 @@ export function showAuthView() {
   if (openAdminBtn) openAdminBtn.style.display = 'none';
   const cartBtn = document.getElementById('openCart');
   if (cartBtn) cartBtn.style.display = 'none';
+  ['authLoginEmail','authLoginPass','authRegName','authRegEmail','authRegPhone','authRegPass','authRegPass2','authForgotEmail','authResetPass','authResetPass2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
 }
 
 export function showPublicView() {
@@ -240,11 +245,13 @@ export function showPublicView() {
   content.style.display = '';
   content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
   document.getElementById('publicView').style.display = '';
-  document.querySelector('footer.site').style.display = '';
+  const footer = document.querySelector('footer.site');
+  if (footer) footer.style.display = '';
+  const cartBtn = document.getElementById('openCart');
+  if (cartBtn) cartBtn.style.display = '';
 }
 
-export function showAdminView() {
-  const user = arguments.length > 0 ? arguments[0] : null;
+export function showAdminView(user) {
   const isSeller = user && user.role === 'seller';
   document.getElementById('authView').style.display = 'none';
   document.getElementById('adminView').style.display = '';
@@ -253,7 +260,10 @@ export function showAdminView() {
   content.style.display = '';
   content.querySelectorAll(':scope > div').forEach(d => d.style.display = 'none');
   document.getElementById('publicView').style.display = 'none';
-  document.querySelector('footer.site').style.display = 'none';
+  const footer = document.querySelector('footer.site');
+  if (footer) footer.style.display = 'none';
+  const cartBtn = document.getElementById('openCart');
+  if (cartBtn) cartBtn.style.display = 'none';
 
   document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
 
@@ -289,27 +299,24 @@ export function updateHeaderUI(user) {
   const isSeller = user.role === 'seller';
   const hasPanel = isAdmin || isSeller;
   const roleBadge = isAdmin ? 'Lojista' : isSeller ? 'Vendedor' : '';
+  const adminViewVisible = document.getElementById('adminView').style.display !== 'none';
+  const sidebarVisible = adminViewVisible && document.getElementById('adminView').querySelector('.admin-sidebar').style.display !== 'none';
+  const onStore = adminViewVisible && !sidebarVisible;
+  const showCart = !hasPanel || onStore;
   wrap.style.display = 'flex';
   wrap.innerHTML = `
     <div class="user-badge">
       <span class="user-name">${user.name}</span>
       ${roleBadge ? `<span class="user-role ${isSeller ? 'seller' : ''}">${roleBadge}</span>` : ''}
     </div>
-    ${!hasPanel ? '<button class="logout-btn" id="userLogout">Sair</button>' : ''}
+    <button class="logout-btn" id="userLogout">Sair</button>
   `;
-  if (!hasPanel) {
-    document.getElementById('userLogout').onclick = async () => {
-      await logout();
-      document.getElementById('adminView').style.display = 'none';
-      document.getElementById('publicView').style.display = 'none';
-      wrap.style.display = 'none';
-      wrap.innerHTML = '';
-      cartBtn.style.display = 'none';
-      document.getElementById('authView').style.display = '';
-    };
-  }
-  openAdminBtn.style.display = hasPanel ? '' : 'none';
-  cartBtn.style.display = hasPanel ? 'none' : '';
+  document.getElementById('userLogout').onclick = async () => {
+    await logout();
+    showAuthView();
+  };
+  openAdminBtn.style.display = hasPanel && onStore ? '' : 'none';
+  cartBtn.style.display = showCart ? '' : 'none';
 }
 
 export function showAuthError(id, msg) {
