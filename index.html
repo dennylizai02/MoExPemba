@@ -9,6 +9,7 @@
 <meta property="og:type" content="website">
     <title>MoEx Pemba</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <script>window.__recoveryHash = window.location.hash.includes('type=recovery') ? window.location.hash : '';</script>
@@ -21,29 +22,43 @@
   <div class="loader-text">MoEx Pemba</div>
 </div>
 
+<a class="skip-link" href="#mainContent">Saltar para o conteúdo</a>
+
 <header class="site">
-  <div class="brand">
-    <div class="brand-left">
-      <span class="brand-acronym">MoEx</span>
-      <span class="place">(Mozambique Express)</span>
+  <div class="header-inner">
+    <a href="#" class="brand" id="brandHome" aria-label="MoEx Pemba — início">
+      <span class="brand-mark">MoEx</span>
+      <span class="brand-text">
+        <span class="brand-acronym">MoEx Pemba</span>
+        <span class="brand-suffix">Mozambique Express</span>
+        <span class="place">Entrega em toda a cidade</span>
+      </span>
+    </a>
+
+    <div class="header-actions">
+      <button class="cart-btn ghost" id="openMyOrders" style="display:none;" aria-label="Os Meus Pedidos">
+        <span aria-hidden="true">📋</span> <span class="hide-sm">Pedidos</span>
+      </button>
+      <div class="user-info" id="userInfo" style="display:none;"></div>
+      <button class="cart-btn" id="openCart" style="display:none;" aria-label="Abrir carrinho">
+        <span aria-hidden="true">🧺</span> <span class="hide-sm">Carrinho</span> <span class="cart-count" id="cartCount">0</span>
+      </button>
     </div>
-    <span class="brand-suffix">Pemba</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <button class="cart-btn" id="openMyOrders" style="display:none;">
-      📋 Os Meus Pedidos
-    </button>
-    <div class="user-info" id="userInfo" style="display:none;"></div>
-    <button class="cart-btn" id="openCart" style="display:none;">
-      🧺 Carrinho <span class="cart-count" id="cartCount">0</span>
-    </button>
   </div>
 </header>
+
+<main id="mainContent" style="flex:1; display:flex; flex-direction:column;">
+
+<div id="offlineBanner" class="offline-banner" style="display:none;" role="status">
+  <span class="offline-dot" aria-hidden="true"></span>
+  <span id="offlineBannerText">Sem ligação ao servidor. Mostramos a cópia local dos dados.</span>
+</div>
 
 <div id="authView" style="display:none;">
   <div class="auth-view">
     <div class="auth-card">
       <div class="auth-brand">
+        <div class="brand-mark">MoEx</div>
         <span class="brand-acronym" style="color:var(--coral);">MoEx</span>
         <span class="brand-suffix" style="font-family:'Fraunces',serif;font-weight:600;">Pemba</span>
         <div class="tagline">O melhor das lojas de Pemba, escolhido a dedo para si.</div>
@@ -53,40 +68,62 @@
       <div class="auth-form" id="authLoginForm">
         <div class="auth-error" id="loginError"></div>
         <div class="field">
-          <label>Email ou Telefone</label>
-          <input type="text" id="authLoginEmail" placeholder="exemplo@email.com ou 84xxxxxxx">
+          <label for="authLoginEmail">Email ou Telefone</label>
+          <input type="text" id="authLoginEmail" placeholder="exemplo@email.com ou 84xxxxxxx" autocomplete="username">
         </div>
         <div class="field">
-          <label>Palavra-passe</label>
-          <input type="password" id="authLoginPass" placeholder="A sua palavra-passe">
+          <label for="authLoginPass">Palavra-passe</label>
+          <input type="password" id="authLoginPass" placeholder="A sua palavra-passe" autocomplete="current-password">
         </div>
         <button class="btn-primary" id="authLoginBtn">Entrar</button>
         <div class="auth-toggle"><a id="showForgotPassword">Esqueceu a senha?</a></div>
         <div class="auth-toggle">Não tem conta? <a id="showRegister">Criar conta</a></div>
+        <div class="auth-toggle" id="offlineActions" style="display:none;">
+          <a id="browseOffline">Explorar catálogo sem conta →</a>
+        </div>
       </div>
 
       <!-- Registo -->
       <div class="auth-form" id="authRegisterForm" style="display:none;">
         <div class="auth-error" id="registerError"></div>
         <div class="field">
-          <label>Nome completo</label>
-          <input type="text" id="authRegName" placeholder="O seu nome">
+          <label for="authRegName">Nome completo</label>
+          <input type="text" id="authRegName" placeholder="O seu nome" autocomplete="name">
         </div>
         <div class="field">
-          <label>Email</label>
-          <input type="email" id="authRegEmail" placeholder="exemplo@email.com">
+          <label for="authRegEmail">Email</label>
+          <input type="email" id="authRegEmail" placeholder="exemplo@email.com" autocomplete="email">
         </div>
         <div class="field">
-          <label>Telefone / WhatsApp</label>
-          <input type="tel" id="authRegPhone" placeholder="84xxxxxxx" maxlength="12">
+          <label for="authRegPhone">Telefone / WhatsApp</label>
+          <input type="tel" id="authRegPhone" placeholder="84xxxxxxx" maxlength="12" autocomplete="tel">
         </div>
         <div class="field">
-          <label>Palavra-passe</label>
-          <input type="password" id="authRegPass" placeholder="Mínimo 6 caracteres">
+          <label for="authRegPass">Palavra-passe</label>
+          <input type="password" id="authRegPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
         </div>
         <div class="field">
-          <label>Confirmar palavra-passe</label>
-          <input type="password" id="authRegPass2" placeholder="Repita a palavra-passe">
+          <label for="authRegPass2">Confirmar palavra-passe</label>
+          <input type="password" id="authRegPass2" placeholder="Repita a palavra-passe" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Tipo de conta</label>
+          <div class="role-choice" role="radiogroup" aria-label="Tipo de conta">
+            <label class="role-option">
+              <input type="radio" name="authRole" value="user" checked>
+              <span class="role-option-body">
+                <strong>Cliente</strong>
+                <small>Comprar e acompanhar os meus pedidos</small>
+              </span>
+            </label>
+            <label class="role-option">
+              <input type="radio" name="authRole" value="seller">
+              <span class="role-option-body">
+                <strong>Vendedor</strong>
+                <small>Publicar e gerir os meus produtos</small>
+              </span>
+            </label>
+          </div>
         </div>
         <button class="btn-primary" id="authRegBtn">Criar conta</button>
         <div class="auth-toggle">Já tem conta? <a id="showLogin">Entrar</a></div>
@@ -95,19 +132,19 @@
       <!-- Confirmação de email -->
       <div class="auth-form" id="authConfirmForm" style="display:none;">
         <div class="auth-error" id="confirmError"></div>
-        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Enviámos um email de confirmação para:</p>
+        <p style="font-size:0.88rem;color:var(--ink-soft);margin-top:0;">Enviámos um email de confirmação para:</p>
         <p id="confirmEmailAddr" style="font-weight:700;color:var(--teal);margin:8px 0 16px;"></p>
-        <p style="font-size:0.82rem;color:rgba(18,48,46,0.55);margin-bottom:14px;">Clique no link no email para ativar a sua conta. Verifique também a pasta de spam.</p>
-        <button class="btn-primary" id="authResendBtn" style="background:var(--teal-light);color:var(--teal);">Reenviar email de confirmação</button>
+        <p style="font-size:0.82rem;color:var(--ink-faint);margin-bottom:14px;">Clique no link no email para ativar a sua conta. Verifique também a pasta de spam.</p>
+        <button class="btn-primary" id="authResendBtn" style="background:var(--teal-soft);color:var(--teal);">Reenviar email de confirmação</button>
         <div class="auth-toggle" style="margin-top:12px;"><a id="showLoginFromConfirm">Voltar ao login</a></div>
       </div>
 
       <!-- Esqueci a senha -->
       <div class="auth-form" id="authForgotForm" style="display:none;">
         <div class="auth-error" id="forgotError"></div>
-        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Insira o seu email ou telefone para receber um link de redefinição de senha.</p>
+        <p style="font-size:0.88rem;color:var(--ink-soft);margin-top:0;">Insira o seu email ou telefone para receber um link de redefinição de senha.</p>
         <div class="field">
-          <label>Email ou Telefone</label>
+          <label for="authForgotEmail">Email ou Telefone</label>
           <input type="text" id="authForgotEmail" placeholder="exemplo@email.com ou 84xxxxxxx">
         </div>
         <button class="btn-primary" id="authForgotBtn">Enviar link de redefinição</button>
@@ -117,13 +154,13 @@
       <!-- Redefinir senha -->
       <div class="auth-form" id="authResetForm" style="display:none;">
         <div class="auth-error" id="resetError"></div>
-        <p style="font-size:0.88rem;color:rgba(18,48,46,0.65);margin-top:0;">Insira a sua nova palavra-passe.</p>
+        <p style="font-size:0.88rem;color:var(--ink-soft);margin-top:0;">Insira a sua nova palavra-passe.</p>
         <div class="field">
-          <label>Nova palavra-passe</label>
+          <label for="authResetPass">Nova palavra-passe</label>
           <input type="password" id="authResetPass" placeholder="Mínimo 6 caracteres">
         </div>
         <div class="field">
-          <label>Confirmar nova palavra-passe</label>
+          <label for="authResetPass2">Confirmar nova palavra-passe</label>
           <input type="password" id="authResetPass2" placeholder="Repita a palavra-passe">
         </div>
         <button class="btn-primary" id="authResetBtn">Redefinir senha</button>
@@ -136,59 +173,95 @@
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <nav class="admin-nav">
-        <button class="admin-nav-btn" data-tab="store">Loja</button>
-        <button class="admin-nav-btn active" data-tab="dashboard">Painel</button>
-        <button class="admin-nav-btn" data-tab="orders">Encomendas</button>
-        <button class="admin-nav-btn" data-tab="products">Produtos</button>
-        <button class="admin-nav-btn" data-tab="clients">Clientes</button>
-        <button class="admin-nav-btn" data-tab="requests">Pedidos</button>
-        <button class="admin-nav-btn" data-tab="settings">Configurações</button>
-        <button class="admin-nav-btn" data-tab="suppliers">Fornecedores</button>
+        <button class="admin-nav-btn" data-tab="store"><span class="nav-ic" aria-hidden="true">🛍️</span> Loja</button>
+        <button class="admin-nav-btn active" data-tab="dashboard"><span class="nav-ic" aria-hidden="true">📊</span> Painel</button>
+        <button class="admin-nav-btn" data-tab="orders"><span class="nav-ic" aria-hidden="true">📦</span> Encomendas</button>
+        <button class="admin-nav-btn" data-tab="products"><span class="nav-ic" aria-hidden="true">🏷️</span> Produtos</button>
+        <button class="admin-nav-btn" data-tab="clients"><span class="nav-ic" aria-hidden="true">👥</span> Clientes</button>
+        <button class="admin-nav-btn" data-tab="requests"><span class="nav-ic" aria-hidden="true">🔎</span> Pedidos</button>
+        <button class="admin-nav-btn" data-tab="settings"><span class="nav-ic" aria-hidden="true">⚙️</span> Configurações</button>
+        <button class="admin-nav-btn" data-tab="suppliers"><span class="nav-ic" aria-hidden="true">🏭</span> Fornecedores</button>
       </nav>
-      <button class="admin-nav-btn admin-logout-btn" id="adLogout">Sair</button>
+      <button class="admin-nav-btn admin-logout-btn" id="adLogout"><span class="nav-ic" aria-hidden="true">🚪</span> Sair</button>
     </aside>
     <main class="admin-content">
 
       <div id="publicView" style="display:none;">
         <section class="hero">
-          <div class="eyebrow">Visto nas lojas · Vendido aqui</div>
-          <h1>O melhor das lojas de Pemba, escolhido a dedo para si</h1>
-          <p>Percorremos as lojas da cidade para trazer-lhe os artigos mais bonitos e os melhores preços. Veja, escolha, encomende — nós tratamos do resto.</p>
-          <svg class="wave" viewBox="0 0 1000 60" preserveAspectRatio="none">
-            <path d="M0,30 C150,60 350,0 500,30 C650,60 850,0 1000,30" fill="none" stroke="#1C6E6E" stroke-width="2" opacity="0.5"/>
-            <path d="M0,42 C150,70 350,12 500,42 C650,70 850,12 1000,42" fill="none" stroke="#E8A33D" stroke-width="2" opacity="0.6"/>
-          </svg>
+          <div class="hero-copy">
+            <div class="eyebrow">Visto nas lojas · Vendido aqui</div>
+            <h1>O melhor das lojas de Pemba, escolhido a dedo para si</h1>
+            <p>Percorremos as lojas da cidade para trazer-lhe os artigos mais bonitos e os melhores preços. Veja, escolha, encomende — nós tratamos do resto.</p>
+            <div class="hero-actions">
+              <button class="btn-primary" id="heroShopBtn">Ver produtos</button>
+              <button class="btn-secondary" id="heroRequestBtn">Procurar um artigo</button>
+            </div>
+            <p class="hero-note">Entrega em Pemba · Pagamento na entrega com M-Pesa, e-Mola ou BIM</p>
+          </div>
+          <div class="hero-showcase" id="heroShowcase" aria-hidden="true"></div>
         </section>
-        <div class="filters">
-          <input class="search" id="searchBox" placeholder="Procurar produtos..." aria-label="Procurar produtos">
-          <select id="sortBox" class="search" style="flex:0 1 180px;" aria-label="Ordenar produtos">
-            <option value="">Ordenar por...</option>
-            <option value="price-asc">Menor preço</option>
-            <option value="price-desc">Maior preço</option>
-            <option value="sold-desc">Mais vendidos</option>
-            <option value="newest">Mais recentes</option>
-          </select>
-          <div id="categoryChips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+
+        <div class="trust-bar">
+          <div class="trust-item"><span class="ti-icon" aria-hidden="true">🚚</span><div><b>Entrega em Pemba</b><span>Levamos até à sua zona, de carro ou mota.</span></div></div>
+          <div class="trust-item"><span class="ti-icon" aria-hidden="true">📱</span><div><b>M-Pesa, e-Mola ou BIM</b><span>Pague como preferir, com os métodos locais.</span></div></div>
+          <div class="trust-item"><span class="ti-icon" aria-hidden="true">💬</span><div><b>Fale com o lojista</b><span>Pedido directo por WhatsApp, sem intermediários.</span></div></div>
         </div>
-        <div id="resultCount" style="max-width:1000px;margin:0 auto;padding:0 28px 4px;font-size:0.82rem;color:rgba(18,48,46,0.55);"></div>
+
+        <div class="shop-bar">
+          <div class="shop-bar-inner">
+            <div class="search-wrap">
+              <span class="s-icon" aria-hidden="true">🔍</span>
+              <input class="search" id="searchBox" placeholder="O que procura? Tecido, calçado, acessórios…" aria-label="Procurar produtos" autocomplete="off">
+              <button class="search-clear" id="clearSearch" aria-label="Limpar pesquisa">✕</button>
+            </div>
+            <select id="sortBox" class="search" aria-label="Ordenar produtos">
+              <option value="">Ordenar por…</option>
+              <option value="price-asc">Menor preço</option>
+              <option value="price-desc">Maior preço</option>
+              <option value="sold-desc">Mais vendidos</option>
+              <option value="newest">Mais recentes</option>
+            </select>
+          </div>
+          <div class="chips-row" id="categoryChips"></div>
+          <div class="result-line" id="resultCount"></div>
+        </div>
+
         <div class="featured-strip" id="featuredStrip"></div>
+        <div class="catalog-head" id="catalogHead">
+          <span class="kicker">Catálogo completo</span>
+          <h2 class="display">Todos os artigos</h2>
+        </div>
         <div class="grid" id="productGrid"></div>
-        <div class="empty-state" id="emptyState" style="display:none;">Ainda não há produtos aqui. Volte em breve.</div>
+        <div class="empty-state" id="emptyState" style="display:none;"></div>
       </div>
 
       <!-- Dashboard -->
       <div id="tabDashboard" style="display:none;">
+        <div class="page-head">
+          <div>
+            <h2>Painel</h2>
+            <p id="dashboardGreeting">Resumo da sua loja hoje.</p>
+          </div>
+          <button class="btn-ghost" id="dashNewProduct">+ Novo produto</button>
+        </div>
         <div class="dashboard-stats" id="dashboardStats"></div>
         <div class="admin-section">
           <h3>Encomendas recentes</h3>
+          <p class="section-sub">As últimas encomendas registadas na loja.</p>
           <div id="dashboardRecentOrders"></div>
         </div>
       </div>
 
       <!-- Encomendas -->
       <div id="tabOrders" style="display:none;">
+        <div class="page-head">
+          <div>
+            <h2>Encomendas</h2>
+            <p>Actualize o estado de cada pedido para manter o cliente informado.</p>
+          </div>
+        </div>
         <div class="admin-section">
-          <h3>Encomendas</h3>
+          <h3>Lista de encomendas</h3>
           <div id="orderFilters" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
             <button class="chip active" data-status-filter="all">Todas</button>
             <button class="chip" data-status-filter="novo">Novas</button>
@@ -202,37 +275,186 @@
 
       <!-- Produtos -->
       <div id="tabProducts" style="display:none;">
-        <div class="admin-section">
-          <h3>Adicionar / Editar produto</h3>
-          <input type="hidden" id="editingId" value="">
-          <div class="field"><label>Nome do produto</label><input id="npName"></div>
-          <div class="form-row">
-            <div class="field"><label>Preço (MT)</label><input id="npPrice" type="number"></div>
-            <div class="field"><label>Categoria</label><input id="npCat" placeholder="Ex: Roupa, Calçado..."></div>
+        <div class="page-head">
+          <div>
+            <h2 id="productFormTitle">Adicionar produto</h2>
+            <p>Publique em poucos passos: detalhes, fotos, variações e pronto.</p>
           </div>
-          <div class="field"><label>Link da foto principal (URL)</label><input id="npImg" placeholder="https://..."></div>
-          <div class="field"><label>Fotos adicionais (uma URL por linha, opcional)</label><textarea id="npImages" placeholder="https://...&#10;https://..."></textarea></div>
-          <div class="field"><label>Descrição</label><textarea id="npDesc"></textarea></div>
-          <div class="form-row">
-            <div class="field"><label>Material</label><input id="npMaterial" placeholder="Ex: Algodão, couro..."></div>
-            <div class="field"><label>Tempo médio de entrega</label><input id="npEntrega" placeholder="Ex: 3 a 5 dias"></div>
-          </div>
-          <div class="form-row">
-            <div class="field"><label>Tamanhos (separados por vírgula, opcional)</label><input id="npSizes" placeholder="Ex: P, M, G ou 38, 39, 40"></div>
-            <div class="field"><label>Cores (separadas por vírgula, opcional)</label><input id="npColors" placeholder="Ex: Azul, Vermelho"></div>
-          </div>
-          <div class="field"><label>Etiqueta (opcional)</label><input id="npBadge" placeholder="Ex: Novo, Destaque, Últimas peças..."></div>
-          <div class="field" id="npSupplierField"><label>Fornecedor (opcional)</label><select id="npSupplier"><option value="">Sem fornecedor</option></select></div>
-          <button class="btn-primary" id="npAdd">Publicar produto</button>
+          <button class="btn-ghost" id="npReset">Limpar formulário</button>
         </div>
+
+        <div class="seller-cta" id="npSellerTip">
+          <h3>💡 Dica para vender mais</h3>
+          <p>Fotos com boa luz, um preço claro e a zona de entrega bem definida aumentam a confiança do cliente.</p>
+        </div>
+
         <div class="admin-section">
-          <h3>Produtos publicados</h3>
+          <div class="wizard" id="npWizard">
+            <button type="button" class="wizard-step active" data-wstep="1"><span class="ws-num">1</span> Detalhes</button>
+            <button type="button" class="wizard-step" data-wstep="2"><span class="ws-num">2</span> Fotos</button>
+            <button type="button" class="wizard-step" data-wstep="3"><span class="ws-num">3</span> Variações</button>
+            <button type="button" class="wizard-step" data-wstep="4"><span class="ws-num">4</span> Publicar</button>
+          </div>
+
+          <input type="hidden" id="editingId" value="">
+
+          <form id="npForm" onsubmit="return false;">
+            <!-- Step 1 -->
+            <section class="form-step active" data-step="1">
+              <div class="form-step-head">
+                <span class="fs-index">1</span>
+                <div>
+                  <h4>O que está a vender?</h4>
+                  <p>Nome claro e preço em Meticais.</p>
+                </div>
+                <button type="button" class="fs-toggle" data-toggle-step="1" aria-label="Minimizar secção">−</button>
+              </div>
+              <div class="form-step-body">
+              <div class="field">
+                <label for="npName">Nome do produto *</label>
+                <input id="npName" placeholder="Ex: Capulana estampada" required>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label for="npPrice">Preço (MT) *</label>
+                  <input id="npPrice" type="number" min="0" step="1" placeholder="450" required>
+                </div>
+                <div class="field">
+                  <label for="npCat">Categoria</label>
+                  <input id="npCat" list="npCategoryList" placeholder="Ex: Roupa, Calçado…">
+                  <datalist id="npCategoryList"></datalist>
+                </div>
+              </div>
+                <div class="field">
+                  <label for="npDesc">Descrição</label>
+                  <textarea id="npDesc" placeholder="Explique o produto como o faria ao cliente na loja: material, medidas, estado…"></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="field">
+                    <label for="npMaterial">Material</label>
+                    <input id="npMaterial" placeholder="Ex: Algodão, couro…">
+                  </div>
+                  <div class="field">
+                    <label for="npEntrega">Tempo médio de entrega</label>
+                    <input id="npEntrega" placeholder="Ex: 3 a 5 dias">
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 2 -->
+            <section class="form-step" data-step="2">
+              <div class="form-step-head">
+                <span class="fs-index">2</span>
+                <div>
+                  <h4>Fotos do produto</h4>
+                  <p>Arraste imagens ou cole o endereço da foto. A primeira é a capa.</p>
+                </div>
+                <button type="button" class="fs-toggle" data-toggle-step="2" aria-label="Minimizar secção">−</button>
+              </div>
+              <div class="form-step-body">
+                <div class="dropzone" id="npDropzone">
+                  <div class="dz-icon" aria-hidden="true">🖼️</div>
+                  <b>Arraste as fotos para aqui</b>
+                  <span>ou clique para escolher do computador (JPG, PNG, WEBP)</span>
+                  <input type="file" id="npFileInput" accept="image/*" multiple hidden>
+                </div>
+                <div class="thumb-grid" id="npThumbs"></div>
+                <div class="field" style="margin-top:18px;">
+                  <label for="npImg">Link da foto principal (URL)</label>
+                  <input id="npImg" placeholder="https://…">
+                  <p class="hint">Se carregar fotos, o endereço é preenchido automaticamente. Pode manter URLs se preferir.</p>
+                </div>
+                <div class="field">
+                  <label for="npImages">Fotos adicionais (uma URL por linha, opcional)</label>
+                  <textarea id="npImages" placeholder="https://…&#10;https://…"></textarea>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 3 -->
+            <section class="form-step" data-step="3">
+              <div class="form-step-head">
+                <span class="fs-index">3</span>
+                <div>
+                  <h4>Variações e etiquetas</h4>
+                  <p>Tamanhos, cores e a etiqueta que verá o cliente.</p>
+                </div>
+                <button type="button" class="fs-toggle" data-toggle-step="3" aria-label="Minimizar secção">−</button>
+              </div>
+              <div class="form-step-body">
+                <div class="form-row">
+                  <div class="field">
+                    <label for="npSizes">Tamanhos (separados por vírgula)</label>
+                    <input id="npSizes" placeholder="Ex: P, M, G ou 38, 39, 40">
+                  </div>
+                  <div class="field">
+                    <label for="npColors">Cores (separadas por vírgula)</label>
+                    <input id="npColors" placeholder="Ex: Azul, Vermelho">
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="npBadge">Etiqueta (opcional)</label>
+                  <input id="npBadge" placeholder="Ex: Novo, Destaque, Últimas peças…">
+                  <p class="hint">A etiqueta “Destaque” coloca o produto na secção em destaque da loja.</p>
+                </div>
+                <div class="field" id="npSupplierField">
+                  <label for="npSupplier">Fornecedor (opcional)</label>
+                  <select id="npSupplier"><option value="">Sem fornecedor</option></select>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 4 -->
+            <section class="form-step" data-step="4">
+              <div class="form-step-head">
+                <span class="fs-index">4</span>
+                <div>
+                  <h4>Está pronto para publicar?</h4>
+                  <p>Confirme os dados e publique. Pode editar o produto depois.</p>
+                </div>
+                <button type="button" class="fs-toggle" data-toggle-step="4" aria-label="Minimizar secção">−</button>
+              </div>
+              <div class="form-step-body">
+                <div id="npPreview"></div>
+              </div>
+            </section>
+          </form>
+
+          <div class="form-actions" id="npFormActions">
+            <span class="fa-hint" id="npFormHint">Preencha os detalhes e publique. Pode editar o produto depois.</span>
+            <button class="btn-primary mango" id="npAdd" style="width:auto;padding:13px 28px;">Publicar produto</button>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <div class="page-head" style="margin-bottom:14px;">
+            <div>
+              <h3>Produtos publicados</h3>
+              <p class="section-sub" id="adminProductCount">0 produtos</p>
+            </div>
+          </div>
+          <div class="admin-toolbar">
+            <input class="search" id="adminProductSearch" placeholder="Procurar nos meus produtos…" aria-label="Procurar produtos publicados">
+            <select class="input" id="adminProductCat" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+          </div>
           <div id="adminProductList"></div>
         </div>
       </div>
 
       <!-- Clientes -->
       <div id="tabClients" style="display:none;">
+        <div class="page-head">
+          <div>
+            <h2>Clientes</h2>
+            <p>Clientes registados e pedidos de venda pendentes.</p>
+          </div>
+        </div>
+        <div class="admin-section" id="sellerRequestsSection" style="display:none;">
+          <h3>Pedidos para vender</h3>
+          <p class="section-sub">Utilizadores que pediram uma conta de vendedor.</p>
+          <div id="sellerRequestList"></div>
+        </div>
         <div class="admin-section">
           <h3>Clientes registados</h3>
           <div id="adminClientList"></div>
@@ -241,27 +463,41 @@
 
       <!-- Pedidos personalizados -->
       <div id="tabRequests" style="display:none;">
+        <div class="page-head">
+          <div>
+            <h2>Pedidos personalizados</h2>
+            <p>Clientes à procura de artigos que ainda não temos na loja.</p>
+          </div>
+        </div>
         <div class="admin-section">
-          <h3>Pedidos personalizados</h3>
+          <h3>Pedidos recebidos</h3>
           <div id="adminRequestList"></div>
         </div>
       </div>
 
       <!-- Configurações -->
       <div id="tabSettings" style="display:none;">
+        <div class="page-head">
+          <div>
+            <h2>Configurações</h2>
+            <p>Zonas de entrega e formas de pagamento disponíveis no checkout.</p>
+          </div>
+        </div>
         <div class="admin-section">
           <h3>Zonas de entrega</h3>
+          <p class="section-sub">Aparecem como opções no momento de finalizar a encomenda.</p>
           <div id="zonesList"></div>
-          <div class="zone-row">
-            <input id="newZone" placeholder="Ex: Cariaco, Alto Gingone...">
+          <div class="zone-row" style="margin-top:12px;">
+            <input class="input" id="newZone" placeholder="Ex: Cariaco, Alto Gingone…">
             <button id="addZone">Adicionar</button>
           </div>
         </div>
         <div class="admin-section">
           <h3>Formas de pagamento</h3>
+          <p class="section-sub">Métodos que aceita nas lojas de Pemba.</p>
           <div id="paymentsList"></div>
-          <div class="pay-row">
-            <input id="newPayment" placeholder="Ex: M-Pesa, e-Mola, BIM...">
+          <div class="pay-row" style="margin-top:12px;">
+            <input class="input" id="newPayment" placeholder="Ex: M-Pesa, e-Mola, BIM…">
             <button id="addPayment">Adicionar</button>
           </div>
         </div>
@@ -269,13 +505,19 @@
 
       <!-- Fornecedores -->
       <div id="tabSuppliers" style="display:none;">
+        <div class="page-head">
+          <div>
+            <h2>Fornecedores</h2>
+            <p>Associe os seus produtos aos fornecedores habituais.</p>
+          </div>
+        </div>
         <div class="admin-section">
           <h3>Fornecedores</h3>
-          <p style="font-size:0.85rem;color:rgba(18,48,46,0.5);margin-top:0;">Gerir fornecedores associados aos produtos.</p>
+          <p class="section-sub">Gerir fornecedores associados aos produtos.</p>
           <div id="suppliersList"></div>
-          <div class="zone-row">
-            <input id="newSupplierName" placeholder="Nome do fornecedor">
-            <input id="newSupplierContact" placeholder="Contacto (opcional)">
+          <div class="zone-row" style="margin-top:12px;">
+            <input class="input" id="newSupplierName" placeholder="Nome do fornecedor">
+            <input class="input" id="newSupplierContact" placeholder="Contacto (opcional)">
             <button id="addSupplier">Adicionar</button>
           </div>
         </div>
@@ -285,60 +527,87 @@
   </div>
 </div>
 
+</main>
+
 <footer class="site">
-  MoEx Pemba — feito com carinho para os clientes da cidade.
-  <br><button id="openAdmin" style="display:none;">Painel do lojista</button>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">MoEx</span>
+      <div>
+        <b>MoEx Pemba</b>
+        <span>Feito com carinho para os clientes da cidade.</span>
+      </div>
+    </div>
+    <div class="footer-links">
+      <button id="openAdmin" style="display:none;">Painel do lojista</button>
+      <button id="openWhatsFooter">Falar por WhatsApp</button>
+    </div>
+  </div>
 </footer>
 
 <!-- Cart -->
 <div class="overlay" id="overlay"></div>
-<div class="drawer" id="cartDrawer">
+<div class="drawer" id="cartDrawer" role="dialog" aria-label="Carrinho">
   <div class="drawer-head">
-    <h3 class="display" style="margin:0;font-size:1.2rem;">O seu carrinho</h3>
+    <h3 class="display">O seu carrinho</h3>
     <button id="closeCart" aria-label="Fechar carrinho">✕</button>
   </div>
   <div class="drawer-items" id="cartItems"></div>
   <div class="drawer-foot">
+    <div class="free-ship" id="freeShip">
+      <div class="fs-label">Faltam <b class="mono">0 MT</b> para entrega grátis</div>
+      <div class="fs-track"><div class="fs-fill" style="width:0%"></div></div>
+    </div>
     <div class="total-row"><span>Total</span><span class="v mono" id="cartTotal">0 MT</span></div>
+    <div class="drawer-note">Entrega calculated em Pemba conforme a zona.</div>
     <button class="checkout-btn" id="goCheckout">Finalizar encomenda</button>
   </div>
 </div>
 
 <!-- Product modal -->
-<div class="modal" id="productModal">
+<div class="modal" id="productModal" role="dialog" aria-modal="true" aria-label="Detalhe do produto">
   <div class="modal-box wide">
     <div class="modal-head"><h3 class="display" id="pmName" style="margin:0;"></h3><button id="pmClose" aria-label="Fechar modal">✕</button></div>
-    <div class="modal-body" style="display:flex;gap:20px;flex-wrap:wrap;">
-      <div style="flex:1 1 220px;">
-        <img class="prod-modal-img" id="pmImg" style="border-radius:10px;">
-        <div id="pmThumbs" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;"></div>
-      </div>
-      <div style="flex:1 1 220px;">
-        <div class="tag-cat" id="pmCat"></div>
-        <p id="pmDesc" style="line-height:1.5;color:rgba(18,48,46,0.8);"></p>
-        <div style="font-size:0.85rem;color:var(--teal-dark);margin-bottom:6px;" id="pmMaterial"></div>
-        <div style="font-size:0.85rem;color:var(--teal-dark);margin-bottom:12px;" id="pmEntrega"></div>
-        <div class="tag-sold" id="pmSold" style="margin-bottom:10px;"></div>
-        <div id="pmRatingSummary" style="margin-bottom:10px;font-size:0.85rem;"></div>
-        <div id="pmVariants"></div>
-        <div class="tag-price" id="pmPrice" style="font-size:1.4rem;"></div>
-        <button class="btn-primary mango" id="pmAdd" style="margin-top:16px;">Adicionar ao carrinho</button>
-        <button class="btn-secondary" id="pmShare" style="margin-top:8px;">Partilhar produto</button>
-        <div style="margin-top:18px;border-top:1px dashed var(--line);padding-top:14px;">
-          <div style="font-weight:600;font-size:0.85rem;margin-bottom:6px;">Formas de pagamento</div>
-          <div id="pmPayments"></div>
-          <div style="font-weight:600;font-size:0.85rem;margin:12px 0 6px;">Zonas de entrega</div>
-          <div id="pmZones"></div>
+    <div class="modal-body">
+      <div class="pm-grid">
+        <div>
+          <img class="prod-modal-img" id="pmImg" alt="">
+          <div class="thumbs" id="pmThumbs"></div>
+        </div>
+        <div>
+          <div class="tag-cat" id="pmCat"></div>
+          <h3 class="pm-title" id="pmTitle"></h3>
+          <div class="pm-price" id="pmPrice"></div>
+          <div id="pmRatingSummary" style="margin:10px 0;font-size:.85rem;"></div>
+          <p class="pm-desc" id="pmDesc"></p>
+          <div class="pm-meta">
+            <div class="pm-meta-row" id="pmMaterial"></div>
+            <div class="pm-meta-row" id="pmEntrega"></div>
+            <div class="pm-meta-row" id="pmSold"></div>
+          </div>
+          <div id="pmVariants"></div>
+          <div class="pm-cta">
+            <button class="btn-primary mango" id="pmAdd">Adicionar ao carrinho</button>
+            <button class="btn-secondary" id="pmShare">Partilhar</button>
+          </div>
+          <div class="pm-block">
+            <h4>Formas de pagamento</h4>
+            <div id="pmPayments"></div>
+          </div>
+          <div class="pm-block">
+            <h4>Zonas de entrega</h4>
+            <div id="pmZones"></div>
+          </div>
         </div>
       </div>
-      <div style="flex:1 1 100%;border-top:1px dashed var(--line);padding-top:16px;">
-        <h3 style="font-size:1rem;margin:0 0 10px;">Avaliações</h3>
+      <div class="pm-block" style="margin-top:26px;">
+        <h4>Avaliações</h4>
         <div id="pmReviews"></div>
-        <div style="margin-top:14px;">
-          <div style="font-weight:600;font-size:0.85rem;margin-bottom:6px;">Deixe a sua avaliação</div>
-          <div class="field"><label>O seu nome</label><input id="rvName"></div>
+        <div style="margin-top:16px;">
+          <div style="font-weight:600;font-size:.85rem;margin-bottom:8px;">Deixe a sua avaliação</div>
+          <div class="field"><label for="rvName">O seu nome</label><input id="rvName"></div>
           <div class="field">
-            <label>Classificação</label>
+            <label for="rvRating">Classificação</label>
             <select id="rvRating">
               <option value="5">★★★★★ (5)</option>
               <option value="4">★★★★☆ (4)</option>
@@ -347,8 +616,8 @@
               <option value="1">★☆☆☆☆ (1)</option>
             </select>
           </div>
-          <div class="field"><label>Comentário</label><textarea id="rvComment"></textarea></div>
-          <button class="btn-primary" id="rvSend">Enviar avaliação</button>
+          <div class="field"><label for="rvComment">Comentário</label><textarea id="rvComment"></textarea></div>
+          <button class="btn-primary" id="rvSend" style="width:auto;padding:11px 24px;">Enviar avaliação</button>
         </div>
       </div>
     </div>
@@ -356,28 +625,30 @@
 </div>
 
 <!-- My Orders modal -->
-<div class="modal" id="myOrdersModal">
+<div class="modal" id="myOrdersModal" role="dialog" aria-modal="true" aria-label="Os Meus Pedidos">
   <div class="modal-box">
     <div class="modal-head"><h3 class="display" style="margin:0;">Os Meus Pedidos</h3><button id="moClose" aria-label="Fechar modal">✕</button></div>
-    <div class="modal-body" id="myOrdersList" style="max-height:60vh;overflow-y:auto;"></div>
+    <div class="modal-body" id="myOrdersList" style="max-height:64vh;overflow-y:auto;"></div>
   </div>
 </div>
 
 <!-- Checkout modal -->
-<div class="modal" id="checkoutModal">
+<div class="modal" id="checkoutModal" role="dialog" aria-modal="true" aria-label="Finalizar encomenda">
   <div class="modal-box">
     <div class="modal-head"><h3 class="display" style="margin:0;">Finalizar encomenda</h3><button id="ckClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Nome completo</label><input id="ckName" placeholder="O seu nome"></div>
-      <div class="field"><label>Telefone / WhatsApp</label><input id="ckPhone" placeholder="84xxxxxxx"></div>
+      <div class="ck-summary" id="ckSummary"></div>
+      <div class="field"><label for="ckName">Nome completo</label><input id="ckName" placeholder="O seu nome"></div>
+      <div class="field"><label for="ckPhone">Telefone / WhatsApp</label><input id="ckPhone" placeholder="84xxxxxxx"></div>
       <div class="field">
-        <label>Bairro / Zona de entrega <span style="color:var(--coral);">*</span></label>
-        <select id="ckZone" required><option value="">Selecione a zona...</option></select>
+        <label for="ckZone">Bairro / Zona de entrega <span style="color:var(--coral);">*</span></label>
+        <select id="ckZone" required><option value="">Selecione a zona…</option></select>
+        <div class="zone-pills" id="ckZonePills" style="margin-top:10px;"></div>
       </div>
       <div class="field" id="ckAddrOtherWrap" style="display:none;">
-        <label>Especifique o local <span style="color:var(--coral);">*</span></label><input id="ckAddr" placeholder="Ex: Cariaco, Alto Gingone...">
+        <label for="ckAddr">Especifique o local <span style="color:var(--coral);">*</span></label><input id="ckAddr" placeholder="Ex: Cariaco, Alto Gingone…">
       </div>
-      <div class="field"><label>Observações (opcional)</label><textarea id="ckNote" placeholder="Cor, tamanho, referência..."></textarea></div>
+      <div class="field"><label for="ckNote">Observações (opcional)</label><textarea id="ckNote" placeholder="Cor, tamanho, referência…"></textarea></div>
       <button class="btn-primary mango" id="ckWhats">Enviar pedido por WhatsApp</button>
       <button class="btn-secondary" id="ckSave">Só registar o pedido</button>
     </div>
@@ -385,20 +656,29 @@
 </div>
 
 <!-- Custom request modal -->
-<div class="modal" id="requestModal">
+<div class="modal" id="requestModal" role="dialog" aria-modal="true" aria-label="Pedido personalizado">
   <div class="modal-box">
     <div class="modal-head"><h3 class="display" style="margin:0;">Descreva o que procura</h3><button id="reqClose" aria-label="Fechar modal">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:0.85rem;color:rgba(18,48,46,0.65);margin-top:0;">Não encontrou o produto? Descreva-o e entramos em contacto assim que o encontrarmos numa loja.</p>
-      <div class="field"><label>O seu nome</label><input id="reqName"></div>
-      <div class="field"><label>Telefone / WhatsApp</label><input id="reqPhone" placeholder="84xxxxxxx"></div>
-      <div class="field"><label>Descreva o produto</label><textarea id="reqDesc" placeholder="Ex: procuro um chapéu de palha, tamanho M..."></textarea></div>
+      <p style="font-size:0.85rem;color:var(--ink-soft);margin-top:0;">Não encontrou o produto? Descreva-o e entramos em contacto assim que o encontrarmos numa loja.</p>
+      <div class="field"><label for="reqName">O seu nome</label><input id="reqName"></div>
+      <div class="field"><label for="reqPhone">Telefone / WhatsApp</label><input id="reqPhone" placeholder="84xxxxxxx"></div>
+      <div class="field"><label for="reqDesc">Descreva o produto</label><textarea id="reqDesc" placeholder="Ex: procuro um chapéu de palha, tamanho M…"></textarea></div>
       <button class="btn-primary mango" id="reqSend">Enviar pedido</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Mobile bottom navigation -->
+<nav class="mobile-tabbar" id="mobileTabbar" aria-label="Navegação rápida">
+  <button class="mt-item active" data-mt="store"><span class="mt-ic" aria-hidden="true">🏠</span>Loja</button>
+  <button class="mt-item" data-mt="search"><span class="mt-ic" aria-hidden="true">🔍</span>Buscar</button>
+  <button class="mt-item" data-mt="cart"><span class="mt-ic" aria-hidden="true">🧺</span>Carrinho<span class="mt-badge" id="mtCartBadge">0</span></button>
+  <button class="mt-item" data-mt="orders"><span class="mt-ic" aria-hidden="true">📋</span>Pedidos</button>
+  <button class="mt-item" data-mt="panel"><span class="mt-ic" aria-hidden="true">🏪</span>Painel</button>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script type="module" src="js/app.js"></script>
 </body>

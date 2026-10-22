@@ -10,7 +10,7 @@ export default defineConfig({
   timeout: 30000,
 
   use: {
-    baseURL: 'https://moexpemba.vercel.app',
+    baseURL: process.env.BASE_URL || 'http://localhost:4173',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
   },

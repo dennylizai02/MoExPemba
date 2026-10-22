@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 
-const USER_EMAIL = 'lizaivalden@gmail.com';
-const USER_PASS = 'Isly2017';
+const USER_EMAIL = 'teste.cliente@moex.mz';
+const USER_PASS = 'Teste2026!';
 
 async function loginAsUser(page: Page) {
   await page.goto('/');
@@ -37,7 +37,7 @@ test.describe('Perfil - Login', () => {
     await loginAsUser(page);
     await page.waitForTimeout(2000);
     const currentUrl = page.url();
-    expect(currentUrl).toContain('moexpemba.vercel.app');
+    expect(currentUrl).toMatch(/localhost:4173|moexpemba\.vercel\.app/);
   });
 
   test('login com senha errada mostra erro', async ({ page }) => {

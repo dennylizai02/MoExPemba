@@ -1,6 +1,31 @@
 const fs = require('fs');
 const path = require('path');
 
+function loadEnvFile(file) {
+  if (!fs.existsSync(file)) return {};
+  const out = {};
+  fs.readFileSync(file, 'utf-8')
+    .split('\n')
+    .forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      const idx = trimmed.indexOf('=');
+      if (idx === -1) return;
+      const key = trimmed.slice(0, idx).trim();
+      let value = trimmed.slice(idx + 1).trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      out[key] = value;
+    });
+  return out;
+}
+
+const rootEnv = loadEnvFile(path.join(__dirname, '.env.local'));
+Object.keys(rootEnv).forEach(k => {
+  if (!process.env[k]) process.env[k] = rootEnv[k];
+});
+
 const srcDir = path.join(__dirname);
 const distDir = path.join(__dirname, 'dist');
 
@@ -33,3 +58,8 @@ fs.readdirSync(jsDir).forEach(file => {
     .replace(/__SUPABASE_ANON_KEY__/g, process.env.SUPABASE_ANON_KEY || '');
   fs.writeFileSync(path.join(distJsDir, file), processed);
 });
+
+console.log('Build concluído em dist/');
+if (!process.env.SUPABASE_URL) {
+  console.warn('Aviso: SUPABASE_URL não definido (use .env.local ou variáveis de ambiente).');
+}

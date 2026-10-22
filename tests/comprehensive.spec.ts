@@ -1,23 +1,24 @@
 import { test, expect, Page } from '@playwright/test';
 
-const ADMIN_EMAIL = 'lizaivalden1@outlook.com';
-const USER_EMAIL = 'lizaivalden@gmail.com';
-const SELLER_EMAIL = 'miltoncesarlizai9@gmail.com';
-const PASS = 'Isly2017';
+const ACCOUNTS = {
+  admin: { email: 'lizaivalden1@outlook.com', pass: 'Isly2017' },
+  seller: { email: 'miltoncesarlizai9@gmail.com', pass: 'Isly2017' },
+  user: { email: 'teste.cliente@moex.mz', pass: 'Teste2026!' }
+};
 
-async function loginAs(page: Page, email: string) {
+async function loginAs(page: Page, email: string, pass: string) {
   await page.goto('/');
   await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
   await page.fill('#authLoginEmail', email);
-  await page.fill('#authLoginPass', PASS);
+  await page.fill('#authLoginPass', pass);
   await page.click('#authLoginBtn');
   await page.waitForSelector('#publicView, #adminView, #tabDashboard', { state: 'visible', timeout: 15000 });
   await page.waitForTimeout(500);
 }
 
-async function loginAsAdmin(page: Page) { await loginAs(page, ADMIN_EMAIL); }
-async function loginAsUser(page: Page) { await loginAs(page, USER_EMAIL); }
-async function loginAsSeller(page: Page) { await loginAs(page, SELLER_EMAIL); }
+async function loginAsAdmin(page: Page) { await loginAs(page, ACCOUNTS.admin.email, ACCOUNTS.admin.pass); }
+async function loginAsUser(page: Page) { await loginAs(page, ACCOUNTS.user.email, ACCOUNTS.user.pass); }
+async function loginAsSeller(page: Page) { await loginAs(page, ACCOUNTS.seller.email, ACCOUNTS.seller.pass); }
 
 async function openStore(page: Page) {
   const lojaBtn = page.locator('[data-tab="store"]');
@@ -41,6 +42,23 @@ async function addFirstProductToCart(page: Page) {
   }
 }
 
+async function clearCart(page: Page) {
+  await page.evaluate(() => {
+    const btn = document.getElementById('openCart');
+    if (btn) (btn as HTMLElement).style.display = '';
+  });
+  await page.click('#openCart');
+  await page.waitForSelector('#cartDrawer', { state: 'visible', timeout: 5000 });
+  for (let i = 0; i < 30; i++) {
+    const removeBtn = page.locator('#cartItems .cart-remove, #cartItems button[data-remove]').first();
+    if (!(await removeBtn.isVisible().catch(() => false))) break;
+    await removeBtn.click();
+    await page.waitForTimeout(250);
+  }
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+}
+
 async function openCheckoutWithItem(page: Page) {
   await addFirstProductToCart(page);
   await page.click('#openCart');
@@ -57,8 +75,8 @@ test.describe('Comprehensive - Auth', () => {
   test('Enter no campo email faz login', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#authLoginForm', { state: 'visible', timeout: 15000 });
-    await page.fill('#authLoginEmail', ADMIN_EMAIL);
-    await page.fill('#authLoginPass', PASS);
+    await page.fill('#authLoginEmail', ACCOUNTS.admin.email);
+    await page.fill('#authLoginPass', ACCOUNTS.admin.pass);
     await page.press('#authLoginEmail', 'Enter');
     await page.waitForSelector('#tabDashboard, #publicView, #adminView', { state: 'visible', timeout: 15000 });
     const logged = await page.locator('#tabDashboard, #publicView, #adminView').first().isVisible();
@@ -160,12 +178,13 @@ test.describe('Comprehensive - Loja e Produtos', () => {
     await expect(material).toBeVisible();
   });
 
-  test('modal mostra tempo de entrega', async ({ page }) => {
+  test('modal mostra informação de entrega', async ({ page }) => {
     const viewBtn = page.locator('#productGrid .view-btn').first();
     await viewBtn.click();
     await expect(page.locator('#productModal')).toHaveClass(/show/);
     const entrega = page.locator('#pmEntrega');
     await expect(entrega).toBeVisible();
+    await expect(entrega).toContainText(/entrega/i);
   });
 
   test('modal mostra avaliações existentes', async ({ page }) => {
@@ -247,30 +266,27 @@ test.describe('Comprehensive - Carrinho', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
     await openStore(page);
+    await clearCart(page);
   });
 
   test('adicionar mesmo produto incrementa quantidade', async ({ page }) => {
-    const addBtn = page.locator('#productGrid .add-btn').first();
-    await addBtn.click();
-    await page.waitForTimeout(500);
-    const modalVisible = await page.locator('#productModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-    if (modalVisible) {
-      await page.click('#pmAdd');
-      await page.waitForTimeout(500);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
-      const addBtn2 = page.locator('#productGrid .add-btn').first();
-      await addBtn2.click();
-      await page.waitForTimeout(500);
-      const modalVisible2 = await page.locator('#productModal').evaluate(el => el.classList.contains('show')).catch(() => false);
-      if (modalVisible2) {
+    const countEl = page.locator('#cartCount');
+    const currentCount = async () => parseInt((await countEl.textContent()) || '0');
+    const addOnce = async () => {
+      const before = await currentCount();
+      await page.locator('#productGrid .add-btn').first().click();
+      await page.waitForTimeout(600);
+      const modal = page.locator('#productModal');
+      if (await modal.evaluate(el => el.classList.contains('show')).catch(() => false)) {
         await page.click('#pmAdd');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(600);
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(300);
       }
-    }
-    const cartCountText = await page.locator('#cartCount').textContent();
-    const count = parseInt(cartCountText || '0');
-    expect(count).toBeGreaterThanOrEqual(2);
+      await expect.poll(currentCount, { timeout: 8000 }).toBe(before + 1);
+    };
+    await addOnce();
+    await addOnce();
   });
 
   test('remover item do carrinho', async ({ page }) => {
@@ -365,6 +381,7 @@ test.describe('Comprehensive - Checkout', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
     await openStore(page);
+    await clearCart(page);
     await addFirstProductToCart(page);
   });
 

@@ -4,10 +4,23 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
+    "dev": "node build.js && node scripts/serve.js",
+    "serve": "node scripts/serve.js",
     "test": "npx playwright test",
     "test:headed": "npx playwright test --headed",
     "test:debug": "npx playwright test --debug",
-    "test:report": "npx playwright show-report"
+    "test:report": "npx playwright show-report",
+    "check:ui": "node scripts/mock-ui.js seller && node scripts/mock-ui.js admin && node scripts/mock-user.js",
+    "check:offline": "node scripts/offline-check.js",
+    "check:selectors": "node scripts/selector-audit.js",
+    "check:buttons": "node scripts/button-audit.js",
+    "check:buttons:real": "MODE=real node scripts/button-audit.js",
+    "check:design": "node scripts/design-audit.js",
+    "check:responsive": "node scripts/responsive-audit.js",
+    "check:layout": "node scripts/layout-check.js",
+    "check:all": "npm run check:ui && npm run check:offline && npm run check:selectors && npm run check:buttons && npm run check:design && npm run check:responsive",
+    "seed:users": "node scripts/ensure-users.js",
+    "seed": "node scripts/seed-backend.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0"
